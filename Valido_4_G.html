@@ -1644,37 +1644,37 @@
         // FUNZIONI PDF CORRETTE - SENZA SOVRAPPOSIZIONI
         // ================================
         
-        function generatePDF() {
-            showNotification('Generazione PDF in corso...', 'info');
+function generatePDF() {
+    showNotification('Generazione PDF in corso...', 'info');
+    
+    try {
+        const originalTitle = document.title;
+        const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
+        const currentDate = new Date().toISOString().split('T')[0];
+        
+        document.title = `FlashControl_${offerNumber}_${currentDate}`;
+        
+        // Nascondi elementi non necessari per la stampa
+        const elementsToHide = document.querySelectorAll('.controls, .delete-btn, .notification, .add-resp-btn');
+        elementsToHide.forEach(el => el.style.display = 'none');
+        
+        // Avvia stampa
+        setTimeout(() => {
+            window.print(); // Questa è la riga chiave
             
-            try {
-                const originalTitle = document.title;
-                const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
-                const currentDate = new Date().toISOString().split('T')[0];
-                
-                document.title = `FlashControl_${offerNumber}_${currentDate}`;
-                
-                // Nascondi elementi non necessari per la stampa
-                const elementsToHide = document.querySelectorAll('.controls, .delete-btn, .notification, .add-resp-btn');
-                elementsToHide.forEach(el => el.style.display = 'none');
-                
-                // Avvia stampa
-                setTimeout(() => {
-                    window.print();
-                    
-                    // Ripristina elementi dopo stampa
-                    setTimeout(() => {
-                        elementsToHide.forEach(el => el.style.display = '');
-                        document.title = originalTitle;
-                        showNotification('✅ PDF generato con successo!', 'success');
-                    }, 1000);
-                }, 500);
-                
-            } catch (error) {
-                console.error('Errore generazione PDF:', error);
-                showNotification('❌ Errore nella generazione PDF', 'error');
-            }
-        }
+            // Ripristina elementi dopo stampa
+            setTimeout(() => {
+                elementsToHide.forEach(el => el.style.display = '');
+                document.title = originalTitle;
+                showNotification('✅ PDF generato con successo!', 'success');
+            }, 1000);
+        }, 500);
+        
+    } catch (error) {
+        console.error('Errore generazione PDF:', error);
+        showNotification('❌ Errore nella generazione PDF', 'error');
+    }
+}
         
         function browserPrint() {
             showNotification('Finestra di stampa aperta', 'info');
