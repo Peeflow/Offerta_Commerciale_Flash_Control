@@ -1209,7 +1209,7 @@ PREZZI PER 2025;
 26.0;45671.0;GE VERNOVA;25026FLC;attesa;;;NDT and Welding Services for Janub project;Azerbaijan;rev.1 -divisa per unità di lavoro;
 27.0;45672.0;  T.G.E.
  Ventilatori S.r.l.;25027FLC;POSITIVO;25027FLC;;CND su ventilatori e giranti;loro aree;EX COMMESSA 23235FLC +24060FLC;
-28.0;45672.0;FIRE TECHNOLOGY;25028FLC;positivo;25028FLC;accettazione offerta;OFFERTA GENERICA;;ex commessa 23279FLC + 24149FLC;
+28.0;45672.0;FIRE TECHNOLOGY;25028FLC;positivo;25028FLC;accettazione offerta;OFFERTA GENERICA;;ex COMMESSA 23279FLC + 24149FLC;
 29.0;45672.0;ROSETTI MARINO;25029FLC;POSITIVO;25029FLC;122A70-SDA-10438 ;LPWHT su piping;aree Ravenna;"rev,2";
 30.0;45672.0;"
 EnPlus S.r.l.";25030FLC;attesa;;;RT-LP- PRERISCALDI + LPWHT su 3 saldature di valvole di sicurezza di caldaia NooterEriksen;Enplus San Severo (FG);;
@@ -1230,8 +1230,8 @@ EnPlus S.r.l.";25030FLC;attesa;;;RT-LP- PRERISCALDI + LPWHT su 3 saldature di va
 42.0;45680.0;SIMIC S.p.A.;25042FLC;POSITIVO;25042FLC;2400054_L ;FORNO 8X6X22 + VENDITA MODULI REFRATTARI;LORO AREE;EX COMMESSA 23282FLC +24045FLC;
 43.0;45680.0;CARPENTERIA CORSI;25043FLC;PERSO;;;"LPWHT su saldatura circolare del fondo;";loro aree;;
 44.0;45681.0;NEW ENERGY;25044FLC;POSITIVO;25044FLC;;CND VARI;LORO AREE;ex COMMESSA 24110FLC;
-45.0;45681.0;TUBITAL;25045FLC;positivo;25045FLC;23054;GESTIONE CICLI TERMICI ;C/O LORO AREE;ex commessa 23002FLC+ 24150FLC;
-46.0;;MANUTENZIONI INERENTI FORNI;25900FLC;POSITIVO;25900FLC;;manutenzioni generiche pannellatura e strutture ;magazzino;ex commessa 24900FLC;
+45.0;45681.0;TUBITAL;25045FLC;positivo;25045FLC;23054;GESTIONE CICLI TERMICI ;C/O LORO AREE;ex COMMESSA 23002FLC+ 24150FLC;
+46.0;;MANUTENZIONI INERENTI FORNI;25900FLC;POSITIVO;25900FLC;;manutenzioni generiche pannellatura e strutture ;magazzino;ex COMMESSA 24900FLC;
 47.0;45681.0;BREMBANA E ROLLE;25046FLC;positivo;25046FLC;23031-ODA24-004223;"1 saldatura circonferenziale mantello, tra virole pos.201-220 Øi2540mm, sp.130mm"; Ricengo;EX COMMESSA 24209FLC;
 48.0;45681.0;TRATENOR;25047FLC;POSITIVO;25047FLC;;PWHT e servizi accessori;;EX COMMESSA 23049FLC+ 24013FLC;
 49.0;45681.0;BREMBANA E ROLLE;25048FLC;positivo;25048FLC;23060-ODA24-003957;LPWHT SU CIRCOLARE TRA MANTELLO e PIASTRA TUBIERA;LORO AREE ALBIGNASEGO;EX COMMESSA 24196FLC;
@@ -1252,7 +1252,7 @@ EnPlus S.r.l.";25030FLC;attesa;;;RT-LP- PRERISCALDI + LPWHT su 3 saldature di va
 62.0;45700.0;CARP.
  CORSI;25061FLC;POSITIVO;25061FLC;;PWHT di 4 giranti;sede di Castelnuovo Magra;;
 63.0;45701.0;MAX STREICHER;25062FLC;attesa;;;LPWHT + EVENTUALE FORNO;STOGIT FIUME TRIESTE;;
-64.0;45702.0;INCO INTERNATIONAL FZCO;25063FLC;POSITIVO;25063FLC;INI422-SUB-PWHT-003;PWHT COMBUSTIONE INTERNA SFERA ;ABU DHABI;ex commessa 24176FLC;
+64.0;45702.0;INCO INTERNATIONAL FZCO;25063FLC;POSITIVO;25063FLC;INI422-SUB-PWHT-003;PWHT COMBUSTIONE INTERNA SFERA ;ABU DHABI;ex COMMESSA 24176FLC;
 65.0;45702.0;INDUSTROREMONT d.o.o;25064FLC;;;;CND IN SITO;CORTEOLONA (PV) PLANT;;
 ;45702.0;OFAR;25065FLC;POSITIVO;25065FLC;2125001839.0;LPWHT SU CORNA SALDATE SU PIANO PRESSA;LORO AREE;;
 67.0;45705.0;OCS S.p.A.;25066FLC;attesa;;;PWHT AC SERBATOI + LOC.
@@ -1538,6 +1538,7 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
 `;
 
         function parseCsvData(csvContent) {
+            console.log("Starting parseCsvData...");
             // Remove citations and trim leading/trailing whitespace from overall content
             const cleanedCsvContent = csvContent.replace(/\/g, '').trim();
             // Split by newline.
@@ -1554,21 +1555,24 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
                 // Look for common headers to find the actual data header
                 if (line.includes('N° Offerta') && line.includes('Cliente') && line.includes('RIF.PRATICA')) {
                     headerLineIndex = i;
-                    // Split headers by semicolon, as indicated by file metadata
+                    // Split headers by semicolon, as the embedded CSV now uses semicolons
                     headers = line.split(';').map(h => h.trim()); 
                     clienteIndex = headers.indexOf('Cliente');
                     praticaIndex = headers.indexOf('RIF.PRATICA');
                     commessaIndex = headers.indexOf('N° di Commessa');
+                    console.log("Header line found at index:", headerLineIndex, "Headers:", headers);
+                    console.log("Indices for Cliente, Pratica, Commessa:", {clienteIndex, praticaIndex, commessaIndex});
                     break;
                 }
             }
 
             if (headerLineIndex === -1 || clienteIndex === -1 || praticaIndex === -1 || commessaIndex === -1) {
-                console.error("CSV headers (Cliente, RIF.PRATICA, N° di Commessa) not found or malformed. Found indices:", {clienteIndex, praticaIndex, commessaIndex});
+                console.error("CRITICAL ERROR: CSV headers (Cliente, RIF.PRATICA, N° di Commessa) not found or their indices are invalid. Found indices:", {clienteIndex, praticaIndex, commessaIndex});
                 return;
             }
 
             let dataLinesRaw = lines.slice(headerLineIndex + 1);
+            console.log("Number of raw data lines (after header):", dataLinesRaw.length);
 
             parsedCsvData = [];
             praticaDataMap = new Map();
@@ -1576,13 +1580,13 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
 
             let currentDataRow = null; // Holds the row object currently being built (for multi-line notes)
 
-            dataLinesRaw.forEach(line => {
+            dataLinesRaw.forEach((line, lineIndex) => {
                 line = line.trim();
                 if (line === '') return; // Skip truly empty lines
 
                 const isFooterOrSummary = line.includes('Sede Legale:') || line.includes('DATI COMMESSE');
                 if (isFooterOrSummary) {
-                    // Once a summary/footer line is hit, stop processing further as data lines won't follow.
+                    console.log(`Stopping parsing at footer/summary line (original line ${headerLineIndex + 2 + lineIndex}): [${line.substring(0, 50)}...]`);
                     currentDataRow = null; // Reset for good measure
                     return;
                 }
@@ -1593,6 +1597,9 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
                 // Attempt to extract RIF.PRATICA from its known position for heuristic
                 const praticaCandidate = values[praticaIndex] ? values[praticaIndex].trim() : '';
                 const isNewRecord = /\d{5}FLC/.test(praticaCandidate); // Check if it matches the FLC pattern
+
+                // console.log(`Processing data line ${lineIndex + headerLineIndex + 2}: [${line}]`);
+                // console.log(`  praticaCandidate: ${praticaCandidate}, isNewRecord: ${isNewRecord}, values.length: ${values.length}`);
 
                 if (isNewRecord) {
                     // This is a new record line
@@ -1614,18 +1621,22 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
                     if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '' && row['Cliente'] && row['Cliente'] !== '') {
                         parsedCsvData.push(row);
                         praticaDataMap.set(row['RIF.PRATICA'], row);
-                        if (row['Cliente']) { // Ensure client exists before adding
+                        if (row['Cliente']) { 
                            uniqueClienti.add(row['Cliente']);
                         }
-                        currentDataRow = row; // Set this as the current record being built
+                        currentDataRow = row; 
+                        // console.log("  New valid record added:", row['RIF.PRATICA']);
                     } else {
-                        currentDataRow = null; // Invalid new record (e.g., missing RIF.PRATICA or Cliente), discard
+                        console.warn(`  Skipped invalid record (original line ${headerLineIndex + 2 + lineIndex}): Missing RIF.PRATICA or Cliente. Line: [${line}]`);
+                        currentDataRow = null; 
                     }
                 } else {
                     // This line is a continuation of the previous record's 'Note' field or a stray line
-                    // Append to the Note field if it's a continuation and we have a current record
                     if (currentDataRow && currentDataRow['Note'] !== undefined) {
                         currentDataRow['Note'] += ' ' + line; 
+                        // console.log(`  Appended to note of ${currentDataRow['RIF.PRATICA'] || 'unknown'}: [${line}]`);
+                    } else {
+                        // console.log(`  Skipped line (not new record and no active data row to append to): [${line}]`);
                     }
                 }
             });
@@ -1633,11 +1644,14 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
             // Final re-mapping and sorting for dropdowns
             parsedCsvData = parsedCsvData.filter(row => row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '');
             praticaDataMap = new Map(parsedCsvData.map(row => [row['RIF.PRATICA'], row]));
-            uniqueClienti = new Set(Array.from(uniqueClienti).sort()); // Sort unique clients immediately
+            uniqueClienti = new Set(Array.from(uniqueClienti).sort()); 
 
-            console.log("CSV Parsed (final):", parsedCsvData);
-            console.log("Pratica Map (final):", praticaDataMap);
-            console.log("Unique Clienti (final):", uniqueClienti);
+            console.log("CSV Parsed (final):", parsedCsvData.length, "entries.");
+            console.log("Pratica Map size (final):", praticaDataMap.size);
+            console.log("Unique Clienti size (final):", uniqueClienti.size);
+            if (praticaDataMap.size === 0) {
+                console.error("CRITICAL: Pratica Map is still empty after parsing. Please inspect the console logs for detailed parsing steps and CSV content for inconsistencies.");
+            }
         }
 
         function populateDropdowns() {
@@ -1656,6 +1670,9 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
                     option.textContent = pratica;
                     codicePraticaSelect.appendChild(option);
                 });
+                console.log("Codice Pratica dropdown populated. Number of options (including TBA):", codicePraticaSelect.options.length);
+            } else {
+                console.error("Element with ID 'codicePraticaSelect' not found.");
             }
 
             // Populate Azienda dropdown
@@ -1673,6 +1690,9 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
                     option.textContent = cliente;
                     aziendaSelect.appendChild(option);
                 });
+                console.log("Azienda dropdown populated. Number of options (including empty):", aziendaSelect.options.length);
+            } else {
+                console.error("Element with ID 'aziendaSelect' not found.");
             }
         }
 
@@ -1683,9 +1703,12 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
             const numeroCommessaElement = document.getElementById('numeroCommessa');
             const aziendaSelect = document.getElementById('aziendaSelect'); 
 
+            console.log("handleCodicePraticaChange triggered. Selected Pratica:", selectedPratica);
+
             if (selectedPratica === 'TBA') {
                 if (numeroCommessaElement) numeroCommessaElement.textContent = '';
-                if (aziendaSelect) aziendaSelect.value = ''; // Reset azienda dropdown
+                if (aziendaSelect) aziendaSelect.value = ''; 
+                console.log("  TBA selected: Cleared Numero Commessa and Azienda.");
                 return;
             }
 
@@ -1696,18 +1719,18 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
                     numeroCommessaElement.textContent = rowData['N° di Commessa'] || '';
                 }
                 if (aziendaSelect && rowData['Cliente']) {
-                    // Check if the option exists, if not add it or ensure the value is set correctly
-                    // This ensures that even if 'uniqueClienti' missed an edge case or client name has odd chars, it will be added.
                     if (!Array.from(aziendaSelect.options).some(option => option.value === rowData['Cliente'])) {
                         const newOption = document.createElement('option');
                         newOption.value = rowData['Cliente'];
                         newOption.textContent = rowData['Cliente'];
                         aziendaSelect.appendChild(newOption);
+                        console.log(`  Added missing Cliente option: ${rowData['Cliente']}`);
                     }
                     aziendaSelect.value = rowData['Cliente']; 
                 }
+                console.log("  Fields populated for Pratica:", selectedPratica, "Commessa:", numeroCommessaElement.textContent, "Azienda:", aziendaSelect.value);
             } else {
-                // Clear if no data found for selected pratica
+                console.warn(`  No row data found for selected Pratica: ${selectedPratica}. Clearing fields.`);
                 if (numeroCommessaElement) numeroCommessaElement.textContent = '';
                 if (aziendaSelect) aziendaSelect.value = '';
             }
@@ -1715,7 +1738,7 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
 
         function handleAziendaChange() {
             // This function can be left empty or trigger other logic if needed.
-            // For now, it's primarily driven by Codice Pratica change, but direct selection is possible.
+            console.log("Azienda dropdown changed to:", document.getElementById('aziendaSelect')?.value);
         }
         
         // ================================
@@ -1727,7 +1750,6 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
             
             try {
                 const originalTitle = document.title;
-                // Modified to get value from select
                 const offerNumber = document.getElementById('codicePraticaSelect')?.value || 'OFFER'; 
                 const currentDate = new Date().toISOString().split('T')[0];
                 
@@ -1739,7 +1761,7 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
                 
                 // Avvia stampa
                 setTimeout(() => {
-                    window.print(); // Questa è la riga chiave
+                    window.print(); 
                     
                     // Ripristina elementi dopo stampa
                     setTimeout(() => {
