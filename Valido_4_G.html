@@ -1341,7 +1341,7 @@
             const logoTextElement = document.getElementById('logoText');
 
             if (logoImageElement && logoImageElement.style.display === 'block' && logoImageElement.src) {
-                logoContent = `<div style="text-align: center; margin-bottom: 20px;"><img src="${logoImageElement.src}" alt="Logo Aziendale" style="width: 120px; height: 80px; object-fit: contain;"></div>`;
+                logoContent = `<div style="text-align: center; margin-bottom: 20px;"><img src="${logoImageElement.src}" alt="Logo Aziendale" style="width: 240px; height: 160px; object-fit: contain;"></div>`; // MODIFICATO: Dimensioni raddoppiate
             } else if (logoTextElement && logoTextElement.style.display === 'block') {
                 // Aggiunto il ripristino dei <br> per il logo testuale
                 logoContent = `<div style="font-family: Calibri, sans-serif; font-size: 16pt; font-weight: bold; text-align: center; color: #2c5aa0; margin-bottom: 10px;">${logoTextElement.innerHTML.trim()}</div>`;
