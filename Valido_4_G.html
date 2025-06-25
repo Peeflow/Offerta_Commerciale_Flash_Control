@@ -1,0 +1,2498 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Control - Sistema Preventivi Completo</title>
+    <style>
+        /* ... il tuo CSS esistente ... */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .document {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: white;
+            padding: 25mm;
+            box-shadow: 0 0 30px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            min-height: 297mm;
+            position: relative;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 4px solid #2c5aa0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            padding: 20px;
+            border-radius: 10px;
+            margin: -20px -20px 30px -20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .logo {
+            width: 480px;
+            height: 3200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 3px solid #2c5aa0;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        #logoImage {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+            border-radius: 12px;
+        }
+        
+        #logoText {
+            display: block;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .company-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .company-info h1 {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2c5aa0;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .company-info .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin: 5px 0;
+            font-weight: 600;
+        }
+        
+        .company-info .tagline {
+            font-size: 13px;
+            color: #2c5aa0;
+            font-weight: bold;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 4px solid #2196f3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .company-info .tagline:hover {
+            background: linear-gradient(135deg, #bbdefb, #90caf9);
+            transform: translateX(3px);
+        }
+        
+        .document-info {
+            text-align: right;
+            font-size: 14px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            min-width: 200px;
+            max-width: 250px;
+        }
+        
+        .document-info div {
+            margin: 8px 0;
+            padding: 5px 0;
+            line-height: 1.3;
+        }
+        
+        .document-info strong {
+            color: #2c5aa0;
+            font-weight: 700;
+        }
+        
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2196f3, #21cbf3);
+        }
+        
+        .section h3 {
+            color: #2c5aa0;
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section h3::before {
+            content: '📋';
+            font-size: 18px;
+        }
+        
+        .client-section {
+            background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+        }
+        
+        .client-section h3::before {
+            content: '👤';
+        }
+        
+        .reference-section {
+            background: linear-gradient(135deg, #fff8e1, #fff3cd);
+        }
+        
+        .reference-section h3::before {
+            content: '📎';
+        }
+        
+        .conditions-section {
+            background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
+        }
+        
+        .conditions-section h3::before {
+            content: '📄';
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 15px 20px;
+            align-items: center;
+        }
+        
+        .info-grid label {
+            font-weight: bold;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-grid .editable {
+            color: #333;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            min-height: 20px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .conditions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        .quotation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 40px 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-radius: 15px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .quotation-table th {
+            background: linear-gradient(135deg, #2c5aa0, #1976d2);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: inset 0 -2px 0 rgba(255,255,255,0.2);
+        }
+        
+        .quotation-table td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: top;
+            background: white;
+            transition: background 0.2s ease;
+        }
+        
+        .quotation-table tbody tr:hover {
+            background: #f8f9fa !important;
+        }
+        
+        .quotation-table tbody tr:nth-child(even) {
+            background: #fafbfc;
+        }
+        
+        .section-header-cell {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb) !important;
+            color: #1976d2 !important;
+            font-weight: bold;
+            text-align: center;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 20px !important;
+        }
+        
+        /* COLONNE TABELLA RIDIMENSIONATE */
+        .quotation-table th:nth-child(1),
+        .quotation-table td:nth-child(1) {
+            width: 50px;
+            text-align: center;
+            font-weight: bold;
+            color: #2c5aa0;
+            font-size: 18px;
+            background: linear-gradient(135deg, #f0f8ff, #e6f3ff);
+        }
+        
+        .quotation-table th:nth-child(2),
+        .quotation-table td:nth-child(2) {
+            width: 60%;
+        }
+        
+        .quotation-table th:nth-child(3),
+        .quotation-table td:nth-child(3) {
+            width: 15%;
+            text-align: center;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+        
+        .quotation-table th:nth-child(4),
+        .quotation-table td:nth-child(4) {
+            width: 20%;
+            text-align: right;
+            font-weight: bold;
+            color: #2e7d32;
+            background: linear-gradient(135deg, #f1f8e9, #e8f5e8);
+        }
+        
+        .quotation-table th:nth-child(5),
+        .quotation-table td:nth-child(5) {
+            width: 20%;
+            text-align: right;
+            font-weight: bold;
+            color: #2e7d32;
+            background: linear-gradient(135deg, #f1f8e9, #e8f5e8);
+        }
+        
+        .notes-section {
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+        }
+        
+        .notes-section h3::before {
+            content: '📝';
+        }
+        
+        .note-item {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #ffa726;
+            position: relative;
+        }
+        
+        .responsibilities {
+            display: flex;
+            gap: 30px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .resp-column {
+            flex: 1;
+            min-width: 300px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            background: white;
+        }
+        
+        .resp-header {
+            padding: 25px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+        }
+        
+        .flash-header {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+        }
+        
+        .client-header {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+        
+        .resp-content {
+            padding: 25px;
+        }
+        
+        .resp-item {
+            margin: 15px 0;
+            padding: 18px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .resp-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .flash-item {
+            border-left-color: #4caf50;
+        }
+        
+        .client-item {
+            border-left-color: #ff9800;
+        }
+        
+        .add-resp-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 15px;
+            width: 100%;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .add-resp-btn:hover {
+            background: linear-gradient(135deg, #20c997, #17a085);
+            transform: translateY(-2px);
+        }
+        
+        .approval-section {
+            margin: 50px 0;
+            text-align: center;
+            padding: 50px;
+            background: linear-gradient(135deg, #f5f5f5, #eeeeee);
+            border: 4px dashed #2c5aa0;
+            border-radius: 20px;
+            position: relative;
+        }
+        
+        .approval-section::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 30px;
+            opacity: 0.3;
+        }
+        
+        .approval-section h3 {
+            color: #2c5aa0;
+            font-size: 28px;
+            margin-bottom: 40px;
+            font-weight: 700;
+        }
+        
+        .signature-line {
+            border-bottom: 4px solid #2c5aa0;
+            width: 450px;
+            margin: 40px auto;
+            height: 80px;
+            background: linear-gradient(to right, transparent 0%, #f0f8ff 50%, transparent 100%);
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding: 30px;
+            border-top: 4px solid #2c5aa0;
+            font-size: 13px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+        }
+        
+        .footer div {
+            margin: 10px 0;
+            padding: 5px 0;
+        }
+        
+        .footer strong {
+            color: #2c5aa0;
+            font-weight: 700;
+        }
+        
+        .editable {
+            background: linear-gradient(135deg, #fffbf0, #fff8e1);
+            border: 2px solid #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            min-height: 20px;
+            cursor: text;
+            position: relative;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .editable:hover {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            border-color: #2c5aa0;
+            box-shadow: 0 2px 8px rgba(44,90,160,0.2);
+        }
+        
+        .editable:focus {
+            background: white !important;
+            outline: none;
+            border-color: #2c5aa0 !important;
+            box-shadow: 0 0 0 3px rgba(44,90,160,0.2) !important;
+        }
+        
+        .delete-btn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: 15px;
+            float: right;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #c82333, #a71e2a);
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+            min-width: 200px;
+        }
+        
+        .controls h4 {
+            margin: 0 0 15px 0;
+            color: #2c5aa0;
+            font-size: 16px;
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        }
+        
+        .btn-print { background: linear-gradient(135deg, #dc3545, #c82333); color: white; }
+        .btn-save { background: linear-gradient(135deg, #28a745, #1e7e34); color: white; }
+        .btn-load { background: linear-gradient(135deg, #007bff, #0056b3); color: white; }
+        .btn-add { background: linear-gradient(135deg, #20c997, #17a085); color: white; }
+        .btn-calc { background: linear-gradient(135deg, #ffc107, #e0a800); color: #212529; }
+        .btn-word { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; }
+        /* Nuovo stile per il pulsante HTML */
+        .btn-html-export { background: linear-gradient(135deg, #6c757d, #495057); color: white; }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 2001;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(10px);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        
+        .notification.info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+        }
+
+        /* CORREZIONI PDF - STILI OTTIMIZZATI PER LA STAMPA */
+        @media print {
+            * { 
+                -webkit-print-color-adjust: exact !important; 
+                color-adjust: exact !important; 
+                print-color-adjust: exact !important;
+            }
+            
+            body { 
+                background: white !important; 
+                font-size: 9pt !important;
+                line-height: 1.3 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                color: #000 !important;
+            }
+            
+            .controls, .delete-btn, .notification, .add-resp-btn { 
+                display: none !important; 
+            }
+            
+            .document { 
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 8mm !important;
+                margin: 0 !important;
+                max-width: none !important;
+                min-height: auto !important;
+            }
+
+            /* HEADER OTTIMIZZATO PER LA STAMPA */
+            .header {
+                display: block !important;
+                width: 100% !important;
+                background: #f8fafc !important;
+                border: 2px solid #2c5aa0 !important;
+                margin: 0 0 10mm 0 !important;
+                padding: 8mm !important;
+                page-break-after: avoid !important;
+                break-inside: avoid !important;
+                border-radius: 0 !important;
+                position: relative !important;
+                overflow: visible !important;
+            }
+
+            .logo-section {
+                display: block !important;
+                width: 100% !important;
+                margin-bottom: 8mm !important;
+                text-align: center !important;
+            }
+
+            .logo {
+                width: 80px !important;
+                height: 60px !important;
+                margin: 0 auto 5mm auto !important;
+                display: inline-block !important;
+                vertical-align: top !important;
+                border: 2px solid #2c5aa0 !important;
+                background: #667eea !important;
+            }
+
+            .company-info {
+                text-align: center !important;
+                width: 100% !important;
+                margin: 0 !important;
+            }
+
+            .company-info h1 {
+                font-size: 18pt !important;
+                margin: 0 0 3mm 0 !important;
+                color: #2c5aa0 !important;
+            }
+
+            .company-info .tagline {
+                font-size: 8pt !important;
+                background: #e3f2fd !important;
+                border-left: 3px solid #2196f3 !important;
+                margin: 3mm 0 !important;
+                padding: 3mm !important;
+                display: inline-block !important;
+            }
+
+            /* DOCUMENT INFO POSIZIONATO CORRETTAMENTE */
+            .document-info {
+                position: absolute !important;
+                top: 8mm !important;
+                right: 8mm !important;
+                width: 50mm !important;
+                max-width: 50mm !important;
+                background: white !important;
+                border: 1px solid #ddd !important;
+                padding: 5mm !important;
+                font-size: 7pt !important;
+                box-shadow: none !important;
+                text-align: right !important;
+            }
+
+            .document-info div {
+                margin: 1mm 0 !important;
+                padding: 0 !important;
+                line-height: 1.2 !important;
+            }
+
+            .section {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                margin: 5mm 0 !important;
+                padding: 5mm !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .section h3 {
+                font-size: 11pt !important;
+                margin-bottom: 3mm !important;
+                color: #2c5aa0 !important;
+            }
+
+            .info-grid {
+                display: table !important;
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+
+            .info-grid label,
+            .info-grid .editable {
+                display: table-cell !important;
+                padding: 2mm !important;
+                border: 1px solid #ddd !important;
+                vertical-align: top !important;
+            }
+
+            .info-grid label {
+                width: 30% !important;
+                background: #f0f0f0 !important;
+                font-weight: bold !important;
+            }
+
+            .conditions-grid {
+                display: block !important;
+                columns: 2 !important;
+                column-gap: 5mm !important;
+            }
+
+            .quotation-table {
+                box-shadow: none !important;
+                border: 2px solid #2c5aa0 !important;
+                font-size: 7pt !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin: 5mm 0 !important;
+                width: 100% !important;
+            }
+
+            .quotation-table th {
+                background: #2c5aa0 !important;
+                color: white !important;
+                padding: 3mm !important;
+                font-size: 8pt !important;
+            }
+
+            .quotation-table td {
+                padding: 2mm !important;
+                border: 1px solid #ddd !important;
+                font-size: 7pt !important;
+            }
+
+            .section-header-cell {
+                background: #e3f2fd !important;
+                color: #1976d2 !important;
+                font-weight: bold !important;
+                text-align: center !important;
+                padding: 3mm !important;
+            }
+
+            .responsibilities {
+                display: table !important;
+                width: 100% !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin: 5mm 0 !important;
+            }
+
+            .resp-column {
+                display: table-cell !important;
+                width: 50% !important;
+                vertical-align: top !important;
+                border: 1px solid #ddd !important;
+                padding: 0 !important;
+            }
+
+            .resp-header {
+                background: #2c5aa0 !important;
+                color: white !important;
+                padding: 3mm !important;
+                font-size: 9pt !important;
+            }
+
+            .resp-content {
+                padding: 3mm !important;
+            }
+
+            .resp-item {
+                margin: 2mm 0 !important;
+                padding: 2mm !important;
+                border-left: 3px solid #ddd !important;
+                background: #f9f9f9 !important;
+            }
+
+            .approval-section {
+                border: 2px dashed #2c5aa0 !important;
+                padding: 8mm !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                text-align: center !important;
+                margin: 8mm 0 !important;
+            }
+
+            .signature-line {
+                border-bottom: 2px solid #000 !important;
+                width: 60mm !important;
+                height: 10mm !important;
+                margin: 5mm auto !important;
+            }
+
+            .footer {
+                border-top: 2px solid #2c5aa0 !important;
+                padding: 5mm !important;
+                font-size: 6pt !important;
+                text-align: center !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .note-item {
+                margin: 2mm 0 !important;
+                padding: 3mm !important;
+                border-left: 3px solid #ffa726 !important;
+                background: white !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            @page { 
+                margin: 10mm 8mm !important; 
+                size: A4 portrait !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="controls">
+        <h4>⚡ FLASH CONTROL</h4>
+        
+        <button class="btn btn-print" onclick="generatePDF()">
+            🖨️ PDF STAMPA
+        </button>
+        <button class="btn btn-print" onclick="browserPrint()">
+            🖨️ STAMPA BROWSER  
+        </button>
+        <button class="btn btn-word" onclick="exportToWordCloudConvert()">
+            📄 EXPORT WORD (CloudConvert)
+        </button>
+        <button class="btn btn-html-export" onclick="exportSimpleHTML()">
+            💾 ESPORTA HTML (per Pandoc)
+        </button>
+        
+        <hr style="margin: 15px 0; border: 1px solid #e0e0e0;">
+        
+        <button class="btn btn-save" onclick="handleSave()">
+            💾 SALVA OFFERTA
+        </button>
+        <button class="btn btn-load" onclick="handleLoad()">
+            📂 RECUPERA OFFERTA
+        </button>
+        
+        <hr style="margin: 15px 0; border: 1px solid #e0e0e0;">
+        
+        <button class="btn btn-add" onclick="addTableRow()">
+            ➕ AGGIUNGI RIGA
+        </button>
+        <button class="btn btn-calc" onclick="calculateTotal()">
+            🧮 CALCOLA TOTALE
+        </button>
+        <button class="btn btn-add" onclick="addNote()">
+            📝 AGGIUNGI NOTA
+        </button>
+        
+        <hr style="margin: 15px 0; border: 1px solid #e0e0e0;">
+        
+        <button class="btn" onclick="editTagline()" style="background: linear-gradient(135deg, #6f42c1, #5a32a3); color: white;">
+            ✏️ MODIFICA TAGLINE
+        </button>
+    </div>
+
+    <div class="document">
+        <div class="header">
+            <div class="logo-section">
+                <div class="logo" id="logoContainer" onclick="changeLogo()">
+                    <img id="logoImage" src="" alt="Logo Aziendale">
+                    <div id="logoText">FLASH<br>CONTROL Srl</div>
+                </div>
+                <div class="company-info">
+                    <h1>FLASH CONTROL Srl</h1>
+                    <div class="tagline" onclick="editTagline()">
+                        SISTEMA AVANZATO PREVENTIVI<br>
+                        CND - PWHT - TRATTAMENTI TERMICI LOCALIZZATI
+                    </div>
+                </div>
+            </div>
+            <div class="document-info">
+                <div><strong>OFFER No.</strong> <span class="editable" contenteditable="true">24147FLC_rev.0</span></div>
+                <div><strong>DATE</strong> <span class="editable" contenteditable="true">2024-06-13</span></div>
+                <div><strong>SHEET</strong> <span class="editable" contenteditable="true">1</span></div>
+                <div><strong>VALID UNTIL</strong> <span class="editable" contenteditable="true">2024-09-13</span></div>
+            </div>
+        </div>
+
+        <div class="section client-section">
+            <h3>INFORMAZIONI CLIENTE</h3>
+            <div class="info-grid">
+                <label>Azienda:</label>
+                <div class="editable" contenteditable="true">AIM SERVICE Italia s.r.l.</div>
+                <label>Referente:</label>
+                <div class="editable" contenteditable="true">Mr. Ciraolo</div>
+                <label>Email:</label>
+                <div class="editable" contenteditable="true">info@aimservice.it</div>
+                <label>Telefono:</label>
+                <div class="editable" contenteditable="true">+39 02 1234567</div>
+            </div>
+        </div>
+
+        <div class="section reference-section">
+            <h3>RIFERIMENTI PROGETTO</h3>
+            <div class="info-grid">
+                <label>Vs. Rif.:</label>
+                <div class="editable" contenteditable="true">RdO dated 21 June 2024</div>
+                <label>Oggetto:</label>
+                <div class="editable" contenteditable="true">QUOTATION FOR EXECUTION OF PRE/POST HEATING AND LOCALIZED PWHT IN EGYPT (GIZA), ON WELDING JOINTS DESCRIBED IN YOUR REQUEST</div>
+                <label>Località:</label>
+                <div class="editable" contenteditable="true">Giza, Egypt</div>
+                <label>Tempistiche:</label>
+                <div class="editable" contenteditable="true">Da definire in base alla conferma d'ordine</div>
+            </div>
+        </div>
+
+        <div class="section conditions-section">
+            <h3>CONDIZIONI COMMERCIALI</h3>
+            <div class="conditions-grid">
+                <div>
+                    <strong>VALIDITÀ PREVENTIVO:</strong><br>
+                    <div class="editable" contenteditable="true">90 GIORNI dalla data di emissione</div>
+                </div>
+                <div>
+                    <strong>MODALITÀ PAGAMENTO:</strong><br>
+                    <div class="editable" contenteditable="true">100% after 30 days from date of invoice</div>
+                </div>
+                <div>
+                    <strong>TERMINI CONSEGNA:</strong><br>
+                    <div class="editable" contenteditable="true">5-7 giorni lavorativi dalla conferma</div>
+                </div>
+                <div>
+                    <strong>VALUTA:</strong><br>
+                    <div class="editable" contenteditable="true">Euro (€) - IVA esclusa</div>
+                </div>
+            </div>
+        </div>
+
+        <table class="quotation-table">
+            <thead>
+                <tr>
+                    <th>POS.</th>
+                    <th>DESCRIZIONE DETTAGLIATA</th>
+                    <th>QTÀ</th>
+                    <th>PREZZO UNITARIO</th>
+                    <th>TOTALE</th>
+                </tr>
+            </thead>
+            <tbody id="quotationTableBody">
+                <tr>
+                    <td colspan="5" class="section-header-cell">
+                        <div class="editable" contenteditable="true">SERVIZI DI TRATTAMENTO TERMICO SPECIALIZZATO</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>
+                        <div class="editable" contenteditable="true"><strong>Servizio Tecnico Specializzato:</strong> Maximum 10 hours per day – Maximum 6 days per week.</div>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">1 gg</div>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">720,00</div>
+                        <button class="delete-btn" onclick="deleteRow(this)">✕</button>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">720,00</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>
+                        <div class="editable" contenteditable="true"><strong>Noleggio Attrezzature:</strong> DAILY PRICE FOR EQUIPMENT DULY CALIBRATED.</div>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">1 gg</div>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">160,00</div>
+                        <button class="delete-btn" onclick="deleteRow(this)">✕</button>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">160,00</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>
+                        <div class="editable" contenteditable="true"><strong>Materiali di Consumo:</strong> CONSUMABLE MATERIALS per l'esecuzione dei trattamenti termici</div>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">1 set</div>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">80,00</div>
+                        <button class="delete-btn" onclick="deleteRow(this)">✕</button>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">80,00</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="section notes-section">
+            <h3>NOTE IMPORTANTI E CONDIZIONI SPECIALI</h3>
+            <div id="notesContainer">
+                <div class="note-item">
+                    <strong>Lavoro Straordinario:</strong>
+                    <div class="editable" contenteditable="true">In case of working in overtime the prices will be increased of 10%</div>
+                    <button class="delete-btn" onclick="deleteNote(this)">✕</button>
+                </div>
+                <div class="note-item">
+                    <strong>Turno Notturno:</strong>
+                    <div class="editable" contenteditable="true">In case of working in night shift the prices will be increased of 15%</div>
+                    <button class="delete-btn" onclick="deleteNote(this)">✕</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="responsibilities">
+            <div class="resp-column">
+                <div class="resp-header flash-header">
+                    OBBLIGHI FLASH CONTROL SRL
+                </div>
+                <div class="resp-content" id="flashResponsibilities">
+                    <div class="resp-item flash-item">
+                        <strong>Personale Qualificato:</strong>
+                        <div class="editable" contenteditable="true">Skilled personnel with international certifications</div>
+                        <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
+                    </div>
+                    <div class="resp-item flash-item">
+                        <strong>Attrezzature Certificate:</strong>
+                        <div class="editable" contenteditable="true">PWHT instruments with valid calibration certificates</div>
+                        <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
+                    </div>
+                    <div class="resp-item flash-item">
+                        <strong>Procedure Operative:</strong>
+                        <div class="editable" contenteditable="true">Standard operating procedures and safety protocols</div>
+                        <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
+                    </div>
+                </div>
+                <button class="add-resp-btn" onclick="addFlashResponsibility()">➕ Aggiungi Obbligo Flash Control</button>
+            </div>
+
+            <div class="resp-column">
+                <div class="resp-header client-header">
+                    RESPONSABILITÀ CLIENTE
+                </div>
+                <div class="resp-content" id="clientResponsibilities">
+                    <div class="resp-item client-item">
+                        <strong>Ordine Ufficiale:</strong>
+                        <div class="editable" contenteditable="true">Formal purchase order with technical specifications</div>
+                        <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
+                    </div>
+                    <div class="resp-item client-item">
+                        <strong>Ponteggi e Accessi:</strong>
+                        <div class="editable" contenteditable="true">Scaffolding and safe access to all work areas</div>
+                        <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
+                    </div>
+                    <div class="resp-item client-item">
+                        <strong>Alimentazione Elettrica:</strong>
+                        <div class="editable" contenteditable="true">Adequate electricity supply (380V, 50Hz, min 32A)</div>
+                        <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
+                    </div>
+                </div>
+                <button class="add-resp-btn" onclick="addClientResponsibility()">➕ Aggiungi Responsabilità Cliente</button>
+            </div>
+        </div>
+
+        <div class="approval-section">
+            <h3>APPROVAZIONE E ACCETTAZIONE CLIENTE</h3>
+            <p style="color: #666; margin-bottom: 30px;">
+                Con la firma del presente preventivo, il Cliente accetta integralmente le condizioni specificate,
+                i termini di pagamento e le responsabilità indicate.
+            </p>
+            <div class="signature-line"></div>
+            <div style="margin-top: 15px; font-weight: bold; color: #2c5aa0;">
+                Firma del Cliente e Timbro Aziendale
+            </div>
+            <div style="margin-top: 30px; font-size: 12px; color: #666;">
+                Data: _________________ &nbsp;&nbsp;&nbsp; Luogo: _________________
+            </div>
+        </div>
+
+        <div class="footer">
+            <div><strong>Sede Legale:</strong> <span class="editable" contenteditable="true">Via della Stazione di San Pietro 65 - 00165 Roma (RM)</span></div>
+            <div><strong>Telefono:</strong> <span class="editable" contenteditable="true">+39 0547 373024</span> - <strong>Fax:</strong> <span class="editable" contenteditable="true">+39 0547 323119</span></div>
+            <div><strong>Email:</strong> <span class="editable" contenteditable="true">info@flashcontrol.it</span> <strong>PEC:</strong> <span class="editable" contenteditable="true">info@pec.flashcontrol.it</span></div>
+            <div><strong>P.IVA:</strong> <span class="editable" contenteditable="true">15815591001</span> - <strong>C.F.:</strong> <span class="editable" contenteditable="true">15815591001</span></div>
+            <div style="margin-top: 15px; font-size: 11px; color: #888;">
+                Documento generato dal Sistema Flash Control v2.1 - © 2024 Flash Control S.r.l.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================
+        // SISTEMA FLASH CONTROL v2.1 CON CLOUDCONVERT
+        // ================================
+        
+        // ATTENZIONE: Questa API Key è ESPOSTA nel frontend.
+        // Per un'applicazione in produzione, considera di usare un backend
+        // per gestire le chiamate a CloudConvert in modo sicuro.
+        const CLOUDCONVERT_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMjc0ZDA4ZmY0NGRiOThhMjY1OWNhZGY5ZmIxNWRlNDM3ZDZiY2U2MzdhMGRjYTk4OTAzZWZhNWMxNDQ3YzNmM2RiMmIwMDg0OGIwM2Y0NDEiLCJpYXQiOjE3NTA2Njc5NTQuMjQ3ODg0LCJuYmYiOjE3NTA2Njc5NTQuMjQ3ODg1LCJleHAiOjQ5MDYzNDE1NTQuMjQwNjM2LCJzdWIiOiI3MjI2Mjc1NiIsInNjb3BlcyI6WyJ1c2VyLnJlYWQiLCJ1c2VyLndyaXRlIiwidGFzay5yZWFkIiwidGFzay53cml0ZSIsIndlYmhvb2sucmVhZCIsIndlYmhvb2sud3JpdGUiLCJwcmVzZXQucmVhZCIsInByZXNldC53cml0ZSJdfQ.k86uj1C5YPF8Kas4ep3tIG7r0Rl0wmh-oojqNp1HN8UsD5G2gcJ1NTueRapmjsXPm3QTTmg49eaSWbZazFRI97oK3tPI80HslFgvK_jYmvSzvC0W1fZoMlpoHmQJi7Unesnyh4t2irKIu2BxYvNyx3rmSHYbv80cm1ZGaqLsg45q86uVDOkW_OmhacEWEX3rAlW8YS8P3I6kTTF59rbY8LSGs5ACB1qy8Nwm2CX2a6e9jqXJZchDqaAwr4sGRPtnGgkgceW_W3v0-Y6v4c9YOgeWhyN9i2bn7E0tfvR9lxML8x-CYJ8ANloiE_yXXSPs25Fn2F9JlgQUR3P-pPJ79H-oWBZ1XlxJwLMgmda5Qqi_T72xsfo6ThnQVJQLNoqatVw6J33soRbrhDyCW6aYR1g-1t2Y5K4pdt4Evppws0aU7VRgn5cEQN20YotAGMZnOXN3IrAqWbCUCUHblnQ7_MGmE3Q9vM1VL7dNvrM2zT1jnp0irpwZy_WFsimqaPpRfMlAGaUNK0MhWFGQiiHFWBRxPchPfL_HnH3Xzn8Qg2QJ4A_aVIUW4-mH4hGmERFt10HjQ0wda51XS-yTn9vlE01pZylOPYixFtNdoM9ASfziseYT4ITZK4EMe7dSaaMJAPl5NICHs8zx1qOkglRgwREWeti_XtVHZ4FocMKCMaQ';
+        const CLOUDCONVERT_BASE_URL = 'https://cloudconvert.com';
+        
+        let rowCounter = 3;
+        
+        // ================================
+        // CLOUDCONVERT EXPORT WORD - NUOVA IMPLEMENTAZIONE
+        // ================================
+        
+        async function exportToWordCloudConvert() {
+            showNotification('🚀 Avvio conversione CloudConvert...', 'info');
+            
+            try {
+                const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
+                const currentDate = new Date().toISOString().split('T')[0];
+                const fileName = `FlashControl_${offerNumber}_${currentDate}`;
+                
+                // Genera HTML ottimizzato per Word
+                const htmlContent = generateOptimizedWordHTML();
+                
+                // Step 1: Crea il job
+                const job = await createCloudConvertJob();
+                showNotification('📄 Job CloudConvert creato...', 'info');
+                
+                // Ottieni gli IDs dei task per upload e convert
+                const uploadTaskId = job.data.tasks.find(t => t.name === 'upload-html').id;
+                const convertTaskId = job.data.tasks.find(t => t.name === 'convert-to-docx').id;
+                const exportTaskId = job.data.tasks.find(t => t.name === 'export-docx').id; // Ottieni l'ID del task di export
+                
+                // Step 2: Carica il file HTML
+                await uploadHTMLToCloudConvert(uploadTaskId, htmlContent, fileName);
+                showNotification('⬆️ File HTML caricato...', 'info');
+                
+                // Step 3: Attendi e scarica il risultato dal task di export specifico
+                // Non è necessario avviare esplicitamente la conversione con una chiamata separata
+                // se il job è stato configurato correttamente con input e output.
+                // CloudConvert avvia la conversione non appena l'input è disponibile.
+                await waitAndDownloadResult(exportTaskId, fileName); // Passa l'ID del task di export
+                
+            } catch (error) {
+                console.error('Errore CloudConvert:', error);
+                showNotification(`❌ Errore CloudConvert: ${error.message || error}`, 'error'); // Messaggio di errore migliorato
+            }
+        }
+        
+        async function createCloudConvertJob() {
+            const response = await fetch(`${CLOUDCONVERT_BASE_URL}/jobs`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${CLOUDCONVERT_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    tasks: {
+                        'upload-html': { // Task per l'upload
+                            operation: 'import/upload'
+                        },
+                        'convert-to-docx': { // Task per la conversione
+                            operation: 'convert',
+                            input: 'upload-html', // Dipende dal task di upload
+                            output_format: 'docx',
+                            options: {
+                                page_size: 'A4',
+                                margin_top: '2.5cm',
+                                margin_bottom: '2.5cm',
+                                margin_left: '2.5cm',
+                                margin_right: '2.5cm'
+                            }
+                        },
+                        'export-docx': { // Task per l'esportazione dell'URL
+                            operation: 'export/url',
+                            input: 'convert-to-docx' // Dipende dal task di conversione
+                        }
+                    }
+                })
+            });
+            
+            if (!response.ok) {
+                const errorBody = await response.json();
+                throw new Error(`Errore creazione job: ${response.status} - ${errorBody.message || JSON.stringify(errorBody)}`);
+            }
+            
+            return await response.json();
+        }
+        
+        async function uploadHTMLToCloudConvert(taskId, htmlContent, fileName) {
+            const uploadResponse = await fetch(`${CLOUDCONVERT_BASE_URL}/tasks/${taskId}`, {
+                headers: {
+                    'Authorization': `Bearer ${CLOUDCONVERT_API_KEY}`
+                }
+            });
+            
+            if (!uploadResponse.ok) {
+                const errorBody = await uploadResponse.json();
+                throw new Error(`Errore ottenimento URL upload: ${uploadResponse.status} - ${errorBody.message || JSON.stringify(errorBody)}`);
+            }
+            
+            const uploadData = await uploadResponse.json();
+            const uploadUrl = uploadData.data.result.form.url;
+            const formData = new FormData();
+            
+            Object.entries(uploadData.data.result.form.parameters).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+            
+            const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+            formData.append('file', htmlBlob, `${fileName}.html`);
+            
+            const uploadFileResponse = await fetch(uploadUrl, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!uploadFileResponse.ok) {
+                throw new Error(`Errore upload file: ${uploadFileResponse.status}`);
+            }
+        }
+        
+        // Funzione per attendere e scaricare il risultato del task di esportazione
+        async function waitAndDownloadResult(exportTaskId, fileName) { // Riceve direttamente l'ID del task di export
+            let attempts = 0;
+            const maxAttempts = 60; // Max 4 minuti (60 * 4s)
+            
+            while (attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 4000)); // Attendi 4 secondi
+                
+                // Interroga direttamente lo stato del task di export
+                const statusResponse = await fetch(`${CLOUDCONVERT_BASE_URL}/tasks/${exportTaskId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${CLOUDCONVERT_API_KEY}`
+                    }
+                });
+                
+                if (!statusResponse.ok) {
+                    const errorBody = await statusResponse.json();
+                    throw new Error(`Errore controllo stato task export: ${statusResponse.status} - ${errorBody.message || JSON.stringify(errorBody)}`);
+                }
+                
+                const task = (await statusResponse.json()).data;
+                
+                if (task.status === 'finished') {
+                    if (task.result && task.result.files && task.result.files.length > 0) {
+                        const downloadUrl = task.result.files[0].url;
+                        const downloadResponse = await fetch(downloadUrl);
+                        
+                        if (!downloadResponse.ok) {
+                            throw new Error(`Errore download file: ${downloadResponse.status}`);
+                        }
+                        
+                        const blob = await downloadResponse.blob();
+                        
+                        // Crea link di download
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${fileName}.docx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        showNotification('✅ Documento Word scaricato con successo!', 'success');
+                        return; // Esce dalla funzione
+                    } else {
+                        throw new Error('CloudConvert finished, but no download file found in task result.');
+                    }
+                } else if (task.status === 'error') {
+                    throw new Error(`Errore conversione: ${task.message || 'Errore sconosciuto'}`);
+                }
+                
+                attempts++;
+                showNotification(`🔄 Conversione in corso... (${Math.round((attempts/maxAttempts)*100)}%)`, 'info');
+            }
+            
+            throw new Error('Timeout: conversione CloudConvert troppo lunga.');
+        }
+        
+        function generateOptimizedWordHTML() {
+            const data = extractAllData();
+            
+            // Genera contenuto logo
+            let logoContent = '';
+            const logoImageElement = document.getElementById('logoImage');
+            const logoTextElement = document.getElementById('logoText');
+
+            if (logoImageElement && logoImageElement.style.display === 'block' && logoImageElement.src) {
+                logoContent = `<div style="text-align: center; margin-bottom: 20px;"><img src="${logoImageElement.src}" alt="Logo Aziendale" style="width: 120px; height: 80px; object-fit: contain;"></div>`;
+            } else if (logoTextElement && logoTextElement.style.display === 'block') {
+                // Aggiunto il ripristino dei <br> per il logo testuale
+                logoContent = `<div style="font-family: Calibri, sans-serif; font-size: 16pt; font-weight: bold; text-align: center; color: #2c5aa0; margin-bottom: 10px;">${logoTextElement.innerHTML.trim()}</div>`;
+            }
+
+            return `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="ProgId" content="Word.Document">
+    <title>Flash Control - Offerta Commerciale</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2.5cm;
+        }
+        body { 
+            font-family: Calibri, Arial, sans-serif; 
+            font-size: 11pt; 
+            line-height: 1.4; 
+            margin: 0;
+            padding: 0;
+        }
+        .header-section { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            padding: 20px;
+            border: 2px solid #2c5aa0;
+            background: #f8fafc;
+        }
+        .company-name { 
+            font-size: 24pt; 
+            font-weight: bold; 
+            color: #2c5aa0; 
+            margin: 10px 0;
+        }
+        .offer-title { 
+            font-size: 18pt; 
+            font-weight: bold; 
+            margin: 10px 0;
+            text-transform: uppercase;
+        }
+        .document-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .document-info-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            font-size: 10pt;
+        }
+        .section-title { 
+            font-size: 14pt; 
+            font-weight: bold; 
+            color: #2c5aa0; 
+            margin: 25px 0 15px 0; 
+            border-bottom: 2px solid #2c5aa0;
+            padding-bottom: 5px;
+        }
+        .info-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 15px 0; 
+        }
+        .info-table td { 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            vertical-align: top; 
+        }
+        .label-cell { 
+            background: #f0f0f0; 
+            font-weight: bold; 
+            width: 25%; 
+        }
+        .offer-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+        }
+        .offer-table th { 
+            background: #2c5aa0; 
+            color: white; 
+            padding: 12px; 
+            text-align: center; 
+            font-weight: bold;
+        }
+        .offer-table td { 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            vertical-align: top; 
+        }
+        .section-header-cell { 
+            background: #e3f2fd !important; 
+            color: #1976d2 !important; 
+            font-weight: bold; 
+            text-align: center; 
+            padding: 15px !important; 
+            font-size: 12pt; 
+        }
+        .note-item { 
+            margin-bottom: 15px; 
+            padding: 10px; 
+            border-left: 4px solid #ffa726;
+            background: #fff8e1;
+        }
+        .responsibility-section {
+            margin: 25px 0;
+        }
+        .responsibility-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        .responsibility-table td { 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            vertical-align: top; 
+        }
+        .resp-header { 
+            background: #2c5aa0; 
+            color: white; 
+            font-weight: bold; 
+            text-align: center; 
+            padding: 15px; 
+        }
+        .resp-list { 
+            list-style-type: disc; 
+            padding-left: 20px; 
+            margin: 0; 
+        }
+        .resp-list li { 
+            margin-bottom: 8px; 
+        }
+        .signature-section { 
+            border: 3px dashed #2c5aa0; 
+            padding: 40px; 
+            text-align: center; 
+            margin: 40px 0; 
+        }
+        .signature-line { 
+            border-bottom: 2px solid #000; 
+            width: 300px; 
+            margin: 20px auto; 
+            height: 50px; 
+        }
+        .footer-section { 
+            margin-top: 50px; 
+            padding-top: 20px; 
+            border-top: 3px solid #2c5aa0; 
+            font-size: 9pt; 
+            text-align: center; 
+        }
+        .footer-section div { 
+            margin: 5px 0; 
+        }
+    </style>
+</head>
+<body>
+    <div class="header-section">
+        ${logoContent}
+        <div class="company-name">FLASH CONTROL Srl</div>
+        <div class="offer-title">Offerta Commerciale</div>
+    </div>
+    
+    <div class="section-title">INFORMAZIONI DOCUMENTO</div>
+    <table class="document-info-table">
+        <tr>
+            <td class="label-cell"><strong>Numero Offerta:</strong></td>
+            <td>${data.documentInfo.offerNumber}</td>
+            <td class="label-cell"><strong>Data:</strong></td>
+            <td>${data.documentInfo.date}</td>
+        </tr>
+        <tr>
+            <td class="label-cell"><strong>Foglio:</strong></td>
+            <td>${data.documentInfo.sheet}</td>
+            <td class="label-cell"><strong>Validità:</strong></td>
+            <td>${data.documentInfo.validUntil}</td>
+        </tr>
+    </table>
+    
+    <div class="section-title">INFORMAZIONI CLIENTE</div>
+    <table class="info-table">
+        <tr><td class="label-cell">Azienda:</td><td>${data.client.company}</td></tr>
+        <tr><td class="label-cell">Referente:</td><td>${data.client.contact}</td></tr>
+        <tr><td class="label-cell">Email:</td><td>${data.client.email}</td></tr>
+        <tr><td class="label-cell">Telefono:</td><td>${data.client.phone}</td></tr>
+    </table>
+
+    <div class="section-title">RIFERIMENTI PROGETTO</div>
+    <table class="info-table">
+        <tr><td class="label-cell">Vs. Rif.:</td><td>${data.reference.yourRef}</td></tr>
+        <tr><td class="label-cell">Oggetto:</td><td>${data.reference.object}</td></tr>
+        <tr><td class="label-cell">Località:</td><td>${data.reference.location}</td></tr>
+        <tr><td class="label-cell">Tempistiche:</td><td>${data.reference.timeline}</td></tr>
+    </table>
+
+    <div class="section-title">CONDIZIONI COMMERCIALI</div>
+    <table class="info-table">
+        <tr><td class="label-cell">VALIDITÀ PREVENTIVO:</td><td>${data.conditions.validity}</td></tr>
+        <tr><td class="label-cell">MODALITÀ PAGAMENTO:</td><td>${data.conditions.payment}</td></tr>
+        <tr><td class="label-cell">TERMINI CONSEGNA:</td><td>${data.conditions.delivery}</td></tr>
+        <tr><td class="label-cell">VALUTA:</td><td>${data.conditions.currency}</td></tr>
+    </table>
+    
+    <div class="section-title">DETTAGLIO OFFERTA</div>
+    <table class="offer-table">
+        <thead>
+            <tr>
+                <th style="width:8%">POS.</th>
+                <th style="width:52%">DESCRIZIONE DETTAGLIATA</th>
+                <th style="width:10%">QTÀ</th>
+                <th style="width:15%">PREZZO UNITARIO</th>
+                <th style="width:15%">TOTALE</th>
+            </tr>
+        </thead>
+        <tbody>
+        ${data.items.map(item => {
+            if (item.isSectionHeader) {
+                return `<tr><td colspan="5" class="section-header-cell">${item.description}</td></tr>`;
+            } else if (item.isTotalRow) {
+                return `
+                    <tr>
+                        <td colspan="4" style="text-align: right; background: #4caf50; color: white; padding: 15px; font-weight: bold;">
+                            TOTALE COMPLESSIVO:
+                        </td>
+                        <td style="text-align: right; background: #e8f5e8; padding: 15px; font-weight: bold;">
+                            ${item.total}
+                        </td>
+                    </tr>
+                `;
+            } else {
+                return `
+                    <tr>
+                        <td style="text-align:center">${item.position}</td>
+                        <td>${item.description}</td>
+                        <td style="text-align:center">${item.quantity}</td>
+                        <td style="text-align:right">${item.unitPrice}</td>
+                        <td style="text-align:right">${item.total}</td>
+                    </tr>
+                `;
+            }
+        }).join('')}
+        </tbody>
+    </table>
+
+    <div class="section-title">NOTE IMPORTANTI E CONDIZIONI SPECIALI</div>
+    ${data.notes.map((note, index) => `
+        <div class="note-item">
+            <strong>NOTA ${index + 1}: ${note.category}</strong><br>
+            ${note.content}
+        </div>
+    `).join('')}
+
+    <div class="section-title">RESPONSABILITÀ DELLE PARTI</div>
+    <div class="responsibility-section">
+        <table class="responsibility-table">
+            <tr>
+                <td class="resp-header" style="width: 50%;">OBBLIGHI FLASH CONTROL SRL</td>
+                <td class="resp-header" style="width: 50%;">RESPONSABILITÀ CLIENTE</td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;">
+                    <ul class="resp-list">
+                        ${data.responsibilities.flash.map(resp => `<li><strong>${resp.title}:</strong> ${resp.content}</li>`).join('')}
+                    </ul>
+                </td>
+                <td style="vertical-align: top;">
+                    <ul class="resp-list">
+                        ${data.responsibilities.client.map(resp => `<li><strong>${resp.title}:</strong> ${resp.content}</li>`).join('')}
+                    </ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="section-title">APPROVAZIONE E ACCETTAZIONE CLIENTE</div>
+    <div class="signature-section">
+        <p>Con la firma del presente preventivo, il Cliente accetta integralmente le condizioni specificate, i termini di pagamento e le responsabilità indicate.</p>
+        <div class="signature-line"></div>
+        <div style="margin-top: 15px; font-weight: bold;">Firma del Cliente e Timbro Aziendale</div>
+        <div style="margin-top: 30px; font-size: 10pt;">
+            Data: _________________ &nbsp;&nbsp;&nbsp; Luogo: _________________
+        </div>
+    </div>
+
+    <div class="footer-section">
+        <div><strong>Sede Legale:</strong> ${data.footer.address}</div>
+        <div><strong>Telefono:</strong> ${data.footer.phoneAndFax.split('-')[0]?.trim() || ''} - <strong>Fax:</strong> ${data.footer.phoneAndFax.split('-')[1]?.trim() || ''}</div>
+        <div><strong>Email:</strong> ${data.footer.emailAndWeb.split('PEC:')[0]?.trim() || ''} <strong>PEC:</strong> ${data.footer.emailAndWeb.split('PEC:')[1]?.trim() || ''}</div>
+        <div><strong>P.IVA:</strong> ${data.footer.vatAndCf.split('-')[0]?.replace('P.IVA:', '').trim() || ''} - <strong>C.F.:</strong> ${data.footer.vatAndCf.split('-')[1]?.replace('C.F.:', '').trim() || ''}</div>
+        <div style="margin-top: 15px; font-size: 8pt; color: #888;">
+            Documento generato dal Sistema Flash Control v2.1 - © 2024 Flash Control S.r.l.
+        </div>
+    </div>
+</body>
+</html>`;
+        }
+        
+        // ================================
+        // FUNZIONI PDF CORRETTE - SENZA SOVRAPPOSIZIONI
+        // ================================
+        
+        function generatePDF() {
+            showNotification('Generazione PDF in corso...', 'info');
+            
+            try {
+                const originalTitle = document.title;
+                const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
+                const currentDate = new Date().toISOString().split('T')[0];
+                
+                document.title = `FlashControl_${offerNumber}_${currentDate}`;
+                
+                // Nascondi elementi non necessari per la stampa
+                const elementsToHide = document.querySelectorAll('.controls, .delete-btn, .notification, .add-resp-btn');
+                elementsToHide.forEach(el => el.style.display = 'none');
+                
+                // Avvia stampa
+                setTimeout(() => {
+                    window.print();
+                    
+                    // Ripristina elementi dopo stampa
+                    setTimeout(() => {
+                        elementsToHide.forEach(el => el.style.display = '');
+                        document.title = originalTitle;
+                        showNotification('✅ PDF generato con successo!', 'success');
+                    }, 1000);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Errore generazione PDF:', error);
+                showNotification('❌ Errore nella generazione PDF', 'error');
+            }
+        }
+        
+        function browserPrint() {
+            showNotification('Finestra di stampa aperta', 'info');
+            window.print();
+        }
+        
+        // ================================
+        // GESTIONE SALVATAGGIO/CARICAMENTO
+        // ================================
+
+        function handleSave() {
+            const choice = confirm('Come desideri salvare l\'offerta?\n\nOK = Esporta come file JSON\nAnnulla = Salva nel browser (Salvataggio rapido)');
+            if (choice) {
+                exportToJson();
+            } else {
+                saveOfferToLocalStorage();
+            }
+        }
+
+        function handleLoad() {
+            const choice = confirm('Come desideri recuperare l\'offerta?\n\nOK = Importa da file JSON\nAnnulla = Carica dal browser');
+            if (choice) {
+                importFromJson();
+            } else {
+                loadOfferFromLocalStorage();
+            }
+        }
+
+        function saveOfferToLocalStorage() {
+            const offerName = prompt('Nome per salvare l\'offerta nel browser:', generateOfferName());
+            if (!offerName || !offerName.trim()) return;
+            
+            try {
+                const offerData = {
+                    name: offerName.trim(),
+                    savedDate: new Date().toISOString(),
+                    data: extractAllData()
+                };
+                
+                let savedOffers = [];
+                try {
+                    savedOffers = JSON.parse(localStorage.getItem('flashcontrol_offers') || '[]');
+                } catch (e) {
+                    savedOffers = [];
+                }
+                
+                const existingIndex = savedOffers.findIndex(offer => offer.name === offerName.trim());
+                
+                if (existingIndex >= 0) {
+                    if (!confirm('Esiste già un\'offerta con questo nome. Sovrascrivere?')) {
+                        return;
+                    }
+                    savedOffers[existingIndex] = offerData;
+                } else {
+                    savedOffers.push(offerData);
+                }
+                
+                localStorage.setItem('flashcontrol_offers', JSON.stringify(savedOffers));
+                showNotification(`✅ Offerta "${offerName}" salvata nel browser!`, 'success');
+                
+            } catch (error) {
+                console.error('Errore salvataggio:', error);
+                showNotification('❌ Errore durante il salvataggio nel browser', 'error');
+            }
+        }
+        
+        function loadOfferFromLocalStorage() {
+            try {
+                const savedOffers = JSON.parse(localStorage.getItem('flashcontrol_offers') || '[]');
+                
+                if (savedOffers.length === 0) {
+                    showNotification('ℹ️ Nessuna offerta salvata nel browser trovata', 'info');
+                    return;
+                }
+                
+                let listText = 'Seleziona l\'offerta da caricare dal browser:\n\n';
+                savedOffers.forEach((offer, index) => {
+                    const date = new Date(offer.savedDate).toLocaleDateString('it-IT');
+                    listText += `${index + 1}. ${offer.name} (${date})\n`;
+                });
+                
+                const choice = prompt(listText + '\nInserisci il numero:');
+                const choiceIndex = parseInt(choice) - 1;
+                
+                if (choiceIndex >= 0 && choiceIndex < savedOffers.length) {
+                    const selectedOffer = savedOffers[choiceIndex];
+                    
+                    if (confirm(`Caricare "${selectedOffer.name}" dal browser?\n\nI dati attuali verranno sostituiti.`)) {
+                        applyAllData(selectedOffer.data);
+                        showNotification(`✅ Offerta "${selectedOffer.name}" caricata dal browser!`, 'success');
+                    }
+                } else {
+                    showNotification('❌ Selezione non valida', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Errore caricamento:', error);
+                showNotification('❌ Errore durante il caricamento dal browser', 'error');
+            }
+        }
+
+        function exportToJson() {
+            showNotification('📄 Esportazione offerta come file JSON...', 'info');
+            try {
+                const offerData = extractAllData();
+                const jsonString = JSON.stringify(offerData, null, 2);
+                
+                const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
+                const currentDate = new Date().toISOString().split('T')[0];
+                const fileName = `FlashControl_${offerNumber}_${currentDate}.json`;
+
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showNotification('✅ Offerta esportata come JSON!', 'success');
+            } catch (error) {
+                console.error('Errore durante l\'esportazione JSON:', error);
+                showNotification('❌ Errore nell\'esportazione JSON', 'error');
+            }
+        }
+
+        function importFromJson() {
+            showNotification('📂 Selezione file JSON per importazione...', 'info');
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        try {
+                            const importedData = JSON.parse(event.target.result);
+                            if (confirm('Importare i dati dal file JSON?\n\nI dati attuali verranno sostituiti.')) {
+                                applyAllData(importedData);
+                                showNotification('✅ Offerta importata con successo dal file JSON!', 'success');
+                            }
+                        } catch (parseError) {
+                            console.error('Errore parsing JSON:', parseError);
+                            showNotification('❌ Errore: file JSON non valido', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                } else {
+                    showNotification('ℹ️ Nessun file selezionato', 'info');
+                }
+            };
+            input.click();
+        }
+
+        // ================================
+        // GESTIONE TABELLA
+        // ================================
+        
+        function addTableRow() {
+            try {
+                rowCounter++;
+                const tbody = document.getElementById('quotationTableBody');
+                
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${rowCounter}</td>
+                    <td>
+                        <div class="editable" contenteditable="true"><strong>Nuova voce:</strong> Descrizione del servizio</div>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">1</div>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">0,00</div>
+                        <button class="delete-btn" onclick="deleteRow(this)">✕</button>
+                    </td>
+                    <td>
+                        <div class="editable" contenteditable="true">0,00</div>
+                    </td>
+                `;
+                
+                tbody.appendChild(newRow);
+                showNotification('✅ Nuova riga aggiunta alla tabella', 'success');
+                
+            } catch (error) {
+                console.error('Errore aggiunta riga:', error);
+                showNotification('❌ Errore aggiunta riga', 'error');
+            }
+        }
+        
+        function deleteRow(button) {
+            if (confirm('🗑️ Eliminare questa riga?')) {
+                button.closest('tr').remove();
+                showNotification('🗑️ Riga eliminata', 'info');
+            }
+        }
+        
+        function calculateTotal() {
+            try {
+                let total = 0;
+                let itemCount = 0;
+                
+                const rows = document.querySelectorAll('#quotationTableBody tr');
+                rows.forEach(row => {
+                    if (row.querySelector('.section-header-cell')) return;
+                    
+                    const totalCell = row.querySelector('td:last-child .editable');
+                    if (totalCell) {
+                        const value = totalCell.textContent.trim();
+                        const numValue = parseFloat(value.replace(/[^\d.,]/g, '').replace(',', '.'));
+                        
+                        if (!isNaN(numValue) && numValue > 0) {
+                            total += numValue;
+                            itemCount++;
+                        }
+                    }
+                });
+                
+                if (itemCount > 0) {
+                    const formattedTotal = total.toLocaleString('it-IT', {minimumFractionDigits: 2});
+                    showNotification(`💰 Totale: € ${formattedTotal} (${itemCount} voci)`, 'success');
+                    
+                    if (confirm(`Aggiungere riga totale: € ${formattedTotal}?`)) {
+                        const tbody = document.getElementById('quotationTableBody');
+                        const totalRow = document.createElement('tr');
+                        totalRow.style.backgroundColor = '#e8f5e8';
+                        totalRow.style.fontWeight = 'bold';
+                        totalRow.innerHTML = `
+                            <td colspan="4" style="text-align: right; background: #4caf50; color: white; padding: 15px;">
+                                TOTALE COMPLESSIVO:
+                            </td>
+                            <td style="text-align: right; background: #e8f5e8; padding: 15px;">
+                                € ${formattedTotal}
+                            </td>
+                        `;
+                        tbody.appendChild(totalRow);
+                    }
+                } else {
+                    showNotification('ℹ️ Nessun valore numerico trovato', 'info');
+                }
+                
+            } catch (error) {
+                console.error('Errore calcolo totale:', error);
+                showNotification('❌ Errore nel calcolo', 'error');
+            }
+        }
+        
+        // ================================
+        // GESTIONE NOTE
+        // ================================
+        
+        function addNote() {
+            const category = prompt('📝 Categoria della nota:', '📌 Nota Importante');
+            if (!category || !category.trim()) return;
+            
+            const content = prompt('Contenuto della nota:', 'Inserire qui il contenuto...');
+            if (!content || !content.trim()) return;
+            
+            try {
+                const notesContainer = document.getElementById('notesContainer');
+                const newNote = document.createElement('div');
+                newNote.className = 'note-item';
+                newNote.innerHTML = `
+                    <strong>${escapeHtml(category)}:</strong>
+                    <div class="editable" contenteditable="true">${escapeHtml(content)}</div>
+                    <button class="delete-btn" onclick="deleteNote(this)">✕</button>
+                `;
+                notesContainer.appendChild(newNote);
+                showNotification('✅ Nota aggiunta con successo!', 'success');
+                
+            } catch (error) {
+                console.error('Errore aggiunta nota:', error);
+                showNotification('❌ Errore aggiunta nota', 'error');
+            }
+        }
+        
+        function deleteNote(button) {
+            if (confirm('🗑️ Eliminare questa nota?')) {
+                button.closest('.note-item').remove();
+                showNotification('🗑️ Nota eliminata', 'info');
+            }
+        }
+        
+        // ================================
+        // GESTIONE RESPONSABILITÀ
+        // ================================
+        
+        function addFlashResponsibility() {
+            const title = prompt('🔥 Titolo responsabilità Flash Control:', '📋 Nuova Responsabilità');
+            if (!title || !title.trim()) return;
+            
+            const content = prompt('Descrizione:', 'Inserire descrizione...');
+            if (!content || !content.trim()) return;
+            
+            try {
+                const container = document.getElementById('flashResponsibilities');
+                const newResp = document.createElement('div');
+                newResp.className = 'resp-item flash-item';
+                newResp.innerHTML = `
+                    <strong>${escapeHtml(title)}:</strong>
+                    <div class="editable" contenteditable="true">${escapeHtml(content)}</div>
+                    <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
+                `;
+                container.appendChild(newResp);
+                showNotification('✅ Responsabilità Flash Control aggiunta!', 'success');
+                
+            } catch (error) {
+                console.error('Errore aggiunta responsabilità:', error);
+                showNotification('❌ Errore aggiunta responsabilità', 'error');
+            }
+        }
+        
+        function addClientResponsibility() {
+            const title = prompt('🏢 Titolo responsabilità Cliente:', '📋 Nuova Responsabilità');
+            if (!title || !title.trim()) return;
+            
+            const content = prompt('Descrizione:', 'Inserire descrizione...');
+            if (!content || !content.trim()) return;
+            
+            try {
+                const container = document.getElementById('clientResponsibilities');
+                const newResp = document.createElement('div');
+                newResp.className = 'resp-item client-item';
+                newResp.innerHTML = `
+                    <strong>${escapeHtml(title)}:</strong>
+                    <div class="editable" contenteditable="true">${escapeHtml(content)}</div>
+                    <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
+                `;
+                container.appendChild(newResp);
+                showNotification('✅ Responsabilità Cliente aggiunta!', 'success');
+                
+            } catch (error) {
+                console.error('Errore aggiunta responsabilità:', error);
+                showNotification('❌ Errore aggiunta responsabilità', 'error');
+            }
+        }
+        
+        function deleteResponsibilityItem(button) {
+            if (confirm('🗑️ Eliminare questa responsabilità?')) {
+                button.closest('.resp-item').remove();
+                showNotification('🗑️ Responsabilità eliminata', 'info');
+            }
+        }
+        
+        // ================================
+        // FUNZIONI DI ESPORTAZIONE HTML SEMPLICE (NUOVE)
+        // ================================
+        
+        function exportSimpleHTML() {
+            showNotification('⚡ Generazione HTML semplice per Pandoc...', 'info');
+            try {
+                const htmlContent = generateOptimizedWordHTML(); // Riutilizza la funzione che genera HTML pulito
+                
+                const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
+                const currentDate = new Date().toISOString().split('T')[0];
+                const fileName = `FlashControl_Offerta_${offerNumber}_${currentDate}.html`;
+
+                const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showNotification('✅ File HTML generato e pronto per Pandoc!', 'success');
+            } catch (error) {
+                console.error('❌ Errore esportazione HTML:', error);
+                showNotification(`❌ Errore durante l'esportazione HTML: ${error.message || error}`, 'error');
+            }
+        }
+
+        // ================================
+        // ALTRE FUNZIONI ESISTENTI (nessuna modifica)
+        // ================================
+        
+        function editTagline() {
+            const current = document.querySelector('.tagline').innerHTML;
+            const newTagline = prompt('✏️ Modifica tagline:\n(Usa <br> per andare a capo)', current);
+            
+            if (newTagline !== null && newTagline.trim()) {
+                document.querySelector('.tagline').innerHTML = newTagline.trim();
+                localStorage.setItem('flashcontrol_tagline', newTagline.trim());
+                showNotification('✅ Tagline aggiornata!', 'success');
+            }
+        }
+        
+        function changeLogo() {
+            const choice = confirm('Tipo di logo:\n\nOK = Carica immagine\nAnnulla = Logo testuale');
+            
+            if (choice) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            const logoImage = document.getElementById('logoImage');
+                            const logoText = document.getElementById('logoText');
+                            
+                            logoImage.src = event.target.result;
+                            logoImage.style.display = 'block';
+                            logoText.style.display = 'none';
+                            
+                            localStorage.setItem('flashcontrol_logo', event.target.result);
+                            showNotification('✅ Logo caricato!', 'success');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+                input.click();
+            } else {
+                const newText = prompt('Testo del logo:', 'FLASH\nCONTROL Srl');
+                if (newText !== null) {
+                    const logoImage = document.getElementById('logoImage');
+                    const logoText = document.getElementById('logoText');
+                    
+                    logoText.innerHTML = newText.replace(/\n/g, '<br>');
+                    logoImage.style.display = 'none';
+                    logoText.style.display = 'block';
+                    
+                    localStorage.removeItem('flashcontrol_logo');
+                    showNotification('✅ Logo testuale aggiornato!', 'success');
+                }
+            }
+        }
+        
+        // ================================
+        // FUNZIONI DI UTILITÀ ESISTENTI (nessuna modifica)
+        // ================================
+        
+        function getEditableValue(selector, index) {
+            const elements = document.querySelectorAll(selector);
+            return elements[index] ? elements[index].textContent.trim() : '';
+        }
+        
+        function generateOfferName() {
+            const client = getEditableValue('.client-section .editable', 0) || 'CLIENT';
+            const offer = getEditableValue('.document-info .editable', 0) || 'OFFER';
+            const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            return `${offer}_${client.substring(0, 10)}_${date}`.replace(/[^a-zA-Z0-9_]/g, '_');
+        }
+        
+        function extractAllData() {
+            const logoImage = document.getElementById('logoImage');
+            const logoText = document.getElementById('logoText');
+            
+            return {
+                documentInfo: {
+                    offerNumber: getEditableValue('.document-info .editable', 0),
+                    date: getEditableValue('.document-info .editable', 1),
+                    sheet: getEditableValue('.document-info .editable', 2),
+                    validUntil: getEditableValue('.document-info .editable', 3)
+                },
+                logoImage: logoImage.style.display === 'block' ? logoImage.src : null,
+                logoText: logoText.style.display === 'block' ? logoText.textContent.trim() : null,
+                tagline: document.querySelector('.tagline').innerHTML,
+                client: {
+                    company: getEditableValue('.client-section .editable', 0),
+                    contact: getEditableValue('.client-section .editable', 1),
+                    email: getEditableValue('.client-section .editable', 2),
+                    phone: getEditableValue('.client-section .editable', 3)
+                },
+                reference: {
+                    yourRef: getEditableValue('.reference-section .editable', 0),
+                    object: getEditableValue('.reference-section .editable', 1),
+                    location: getEditableValue('.reference-section .editable', 2),
+                    timeline: getEditableValue('.reference-section .editable', 3)
+                },
+                conditions: {
+                    validity: getEditableValue('.conditions-section .editable', 0),
+                    payment: getEditableValue('.conditions-section .editable', 1),
+                    delivery: getEditableValue('.conditions-section .editable', 2),
+                    currency: getEditableValue('.conditions-section .editable', 3)
+                },
+                items: extractTableItems(),
+                notes: extractNotes(),
+                responsibilities: {
+                    flash: extractResponsibilities('#flashResponsibilities'),
+                    client: extractResponsibilities('#clientResponsibilities')
+                },
+                footer: {
+                    address: getEditableValue('.footer .editable', 0),
+                    phoneAndFax: getEditableValue('.footer .editable', 1),
+                    emailAndWeb: getEditableValue('.footer .editable', 2),
+                    vatAndCf: getEditableValue('.footer .editable', 3)
+                }
+            };
+        }
+        
+        function extractTableItems() {
+            const items = [];
+            const rows = document.querySelectorAll('#quotationTableBody tr');
+            let currentPos = 0;
+
+            rows.forEach(row => {
+                const sectionHeaderCell = row.querySelector('.section-header-cell');
+                const totalRowCell = row.querySelector('td[colspan="4"]');
+
+                if (sectionHeaderCell) {
+                    items.push({
+                        isSectionHeader: true,
+                        description: sectionHeaderCell.querySelector('.editable')?.textContent.trim() || ''
+                    });
+                    currentPos = 0;
+                } else if (totalRowCell) {
+                     items.push({
+                        isTotalRow: true,
+                        total: totalRowCell.nextElementSibling.textContent.trim()
+                    });
+                }
+                else {
+                    const cells = row.children;
+                    if (cells.length >= 5) {
+                        currentPos++;
+                        const description = cells[1].querySelector('.editable')?.textContent.trim() || '';
+                        const quantity = cells[2].querySelector('.editable')?.textContent.trim() || '';
+                        const unitPrice = cells[3].querySelector('.editable')?.textContent.trim() || '';
+                        const total = cells[4].querySelector('.editable')?.textContent.trim() || '';
+                        
+                        if (description) {
+                            items.push({ position: currentPos, description, quantity, unitPrice, total });
+                        }
+                    }
+                }
+            });
+            
+            return items;
+        }
+        
+        function extractNotes() {
+            const notes = [];
+            const noteElements = document.querySelectorAll('.note-item');
+            
+            noteElements.forEach(noteEl => {
+                const strongEl = noteEl.querySelector('strong');
+                const editableEl = noteEl.querySelector('.editable');
+                
+                if (strongEl && editableEl) {
+                    notes.push({
+                        category: strongEl.textContent.trim(),
+                        content: editableEl.textContent.trim()
+                    });
+                }
+            });
+            
+            return notes;
+        }
+        
+        function extractResponsibilities(containerId) {
+            const responsibilities = [];
+            const container = document.querySelector(containerId);
+            const items = container ? container.querySelectorAll('.resp-item') : [];
+            
+            items.forEach(item => {
+                const strongEl = item.querySelector('strong');
+                const editableEl = item.querySelector('.editable');
+                
+                if (strongEl && editableEl) {
+                    responsibilities.push({
+                        title: strongEl.textContent.trim().replace(':', ''),
+                        content: editableEl.textContent.trim()
+                    });
+                }
+            });
+            
+            return responsibilities;
+        }
+        
+        function applyAllData(data) {
+            try {
+                if (data.documentInfo) {
+                    setEditableValue('.document-info .editable', 0, data.documentInfo.offerNumber);
+                    setEditableValue('.document-info .editable', 1, data.documentInfo.date);
+                    setEditableValue('.document-info .editable', 2, data.documentInfo.sheet);
+                    setEditableValue('.document-info .editable', 3, data.documentInfo.validUntil);
+                }
+                
+                if (data.tagline) {
+                    document.querySelector('.tagline').innerHTML = data.tagline;
+                }
+                
+                const logoImage = document.getElementById('logoImage');
+                const logoText = document.getElementById('logoText');
+                if (data.logoImage) {
+                    logoImage.src = data.logoImage;
+                    logoImage.style.display = 'block';
+                    logoText.style.display = 'none';
+                } else if (data.logoText) {
+                    logoText.innerHTML = data.logoText.replace(/\n/g, '<br>');
+                    logoImage.style.display = 'none';
+                    logoText.style.display = 'block';
+                } else {
+                    logoText.innerHTML = 'FLASH<br>CONTROL Srl';
+                    logoImage.style.display = 'none';
+                    logoText.style.display = 'block';
+                }
+
+                if (data.client) {
+                    setEditableValue('.client-section .editable', 0, data.client.company);
+                    setEditableValue('.client-section .editable', 1, data.client.contact);
+                    setEditableValue('.client-section .editable', 2, data.client.email);
+                    setEditableValue('.client-section .editable', 3, data.client.phone);
+                }
+                
+                if (data.reference) {
+                    setEditableValue('.reference-section .editable', 0, data.reference.yourRef);
+                    setEditableValue('.reference-section .editable', 1, data.reference.object);
+                    setEditableValue('.reference-section .editable', 2, data.reference.location);
+                    setEditableValue('.reference-section .editable', 3, data.reference.timeline);
+                }
+                
+                if (data.conditions) {
+                    setEditableValue('.conditions-section .editable', 0, data.conditions.validity);
+                    setEditableValue('.conditions-section .editable', 1, data.conditions.payment);
+                    setEditableValue('.conditions-section .editable', 2, data.conditions.delivery);
+                    setEditableValue('.conditions-section .editable', 3, data.conditions.currency);
+                }
+                
+                if (data.footer) {
+                    setEditableValue('.footer .editable', 0, data.footer.address);
+                    setEditableValue('.footer .editable', 1, data.footer.phoneAndFax);
+                    setEditableValue('.footer .editable', 2, data.footer.emailAndWeb);
+                    setEditableValue('.footer .editable', 3, data.footer.vatAndCf);
+                }
+                
+                if (data.items && data.items.length > 0) {
+                    applyTableItems(data.items);
+                }
+                
+                if (data.notes && data.notes.length > 0) {
+                    applyNotes(data.notes);
+                }
+                
+                if (data.responsibilities) {
+                    if (data.responsibilities.flash) {
+                        applyResponsibilities('#flashResponsibilities', data.responsibilities.flash, 'flash-item');
+                    }
+                    if (data.responsibilities.client) {
+                        applyResponsibilities('#clientResponsibilities', data.responsibilities.client, 'client-item');
+                    }
+                }
+
+                const currentTableRows = document.querySelectorAll('#quotationTableBody tr');
+                rowCounter = 0;
+                currentTableRows.forEach(row => {
+                    if (!row.querySelector('.section-header-cell') && !row.querySelector('td[colspan="4"]') && row.cells.length > 1) {
+                        rowCounter++;
+                        const posCell = row.querySelector('td:first-child');
+                        if(posCell) posCell.textContent = rowCounter;
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Errore applicazione dati:', error);
+                showNotification('⚠️ Errore nel caricamento di alcuni dati', 'error');
+            }
+        }
+        
+        function setEditableValue(selector, index, value) {
+            const elements = document.querySelectorAll(selector);
+            if (elements[index] && value) {
+                elements[index].textContent = value;
+            }
+        }
+        
+        function applyTableItems(items) {
+            const tbody = document.getElementById('quotationTableBody');
+            tbody.innerHTML = '';
+
+            items.forEach((item) => {
+                if (item.isSectionHeader) {
+                    const defaultHeader = document.createElement('tr');
+                    defaultHeader.innerHTML = `
+                        <td colspan="5" class="section-header-cell">
+                            <div class="editable" contenteditable="true">${escapeHtml(item.description)}</div>
+                        </td>
+                    `;
+                    tbody.appendChild(defaultHeader);
+                } else if (item.isTotalRow) {
+                    const totalRow = document.createElement('tr');
+                    totalRow.style.backgroundColor = '#e8f5e8';
+                    totalRow.style.fontWeight = 'bold';
+                    totalRow.innerHTML = `
+                        <td colspan="4" style="text-align: right; background: #4caf50; color: white; padding: 15px;">
+                            TOTALE COMPLESSIVO:
+                        </td>
+                        <td style="text-align: right; background: #e8f5e8; padding: 15px;">
+                            ${escapeHtml(item.total)}
+                        </td>
+                    `;
+                    tbody.appendChild(totalRow);
+                } else {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>${item.position}</td>
+                        <td>
+                            <div class="editable" contenteditable="true">${escapeHtml(item.description)}</div>
+                        </td>
+                        <td>
+                            <div class="editable" contenteditable="true">${escapeHtml(item.quantity)}</div>
+                        </td>
+                        <td>
+                            <div class="editable" contenteditable="true">${escapeHtml(item.unitPrice)}</div>
+                            <button class="delete-btn" onclick="deleteRow(this)">✕</button>
+                        </td>
+                        <td>
+                            <div class="editable" contenteditable="true">${escapeHtml(item.total)}</div>
+                        </td>
+                    `;
+                    tbody.appendChild(newRow);
+                }
+            });
+        }
+        
+        function applyNotes(notes) {
+            const container = document.getElementById('notesContainer');
+            container.innerHTML = '';
+            
+            notes.forEach(note => {
+                const newNote = document.createElement('div');
+                newNote.className = 'note-item';
+                newNote.innerHTML = `
+                    <strong>${escapeHtml(note.category)}:</strong>
+                    <div class="editable" contenteditable="true">${escapeHtml(note.content)}</div>
+                    <button class="delete-btn" onclick="deleteNote(this)">✕</button>
+                `;
+                container.appendChild(newNote);
+            });
+        }
+        
+        function applyResponsibilities(containerId, responsibilities, itemClass) {
+            const container = document.querySelector(containerId);
+            container.innerHTML = '';
+            
+            responsibilities.forEach(resp => {
+                const newResp = document.createElement('div');
+                newResp.className = `resp-item ${itemClass}`;
+                newResp.innerHTML = `
+                    <strong>${escapeHtml(resp.title)}:</strong>
+                    <div class="editable" contenteditable="true">${escapeHtml(resp.content)}</div>
+                    <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
+                `;
+                container.appendChild(newResp);
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // ================================
+        // INIZIALIZZAZIONE
+        // ================================
+        
+        function initializeSystem() {
+            console.log('🚀 Flash Control v2.1 con CloudConvert - Sistema Inizializzato');
+            
+            const savedTagline = localStorage.getItem('flashcontrol_tagline');
+            if (savedTagline) {
+                document.querySelector('.tagline').innerHTML = savedTagline;
+            }
+            
+            const savedLogo = localStorage.getItem('flashcontrol_logo');
+            if (savedLogo) {
+                const logoImage = document.getElementById('logoImage');
+                const logoText = document.getElementById('logoText');
+                
+                logoImage.src = savedLogo;
+                logoImage.style.display = 'block';
+                logoText.style.display = 'none';
+            }
+            
+            showNotification('⚡ Sistema Flash Control con CloudConvert pronto!', 'success');
+        }
+        
+        // Avvia al caricamento
+        document.addEventListener('DOMContentLoaded', initializeSystem);
+        
+        // Scorciatoie tastiera
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                handleSave();
+            }
+            if (e.ctrlKey && e.key === 'o') {
+                e.preventDefault();
+                handleLoad();
+            }
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                generatePDF();
+            }
+            if (e.ctrlKey && e.key === 'w') {
+                e.preventDefault();
+                exportToWordCloudConvert();
+            }
+        });
+        
+        console.log('✅ Flash Control v2.1 con CloudConvert - Caricato e Funzionante!');
+    </script>
+</body>
+</html>
