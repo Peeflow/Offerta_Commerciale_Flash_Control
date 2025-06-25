@@ -51,8 +51,8 @@
         }
         
         .logo {
-            width: 240px;
-            height: 160px;
+            width: 240px; /* MODIFIED: Raddoppiate le dimensioni del logo */
+            height: 160px; /* MODIFIED: Raddoppiate le dimensioni del logo */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: 3px solid #2c5aa0;
             border-radius: 15px;
@@ -951,18 +951,20 @@
             </div>
         </div>
 
-<div class="section reference-section">
-    <h3>RIFERIMENTI PROGETTO</h3>
-    <div class="info-grid">
-        <label>Vs. Rif.:</label>
-        <div class="editable" contenteditable="true">RdO dated 21 June 2024</div>
-        <label>Oggetto:</label>
-        <div class="editable" contenteditable="true">QUOTATION FOR EXECUTION OF PRE/POST HEATING AND LOCALIZED PWHT IN EGYPT (GIZA), ON WELDING JOINTS DESCRIBED IN YOUR REQUEST</div>
-        <label>Descrizione sintetica attività da svolgere:</label> <div class="editable" contenteditable="true">Inserire qui una breve descrizione delle attività da svolgere</div> <label>Località:</label> <div class="editable" contenteditable="true">Giza, Egypt</div>
-        <label>Tempistiche:</label>
-        <div class="editable" contenteditable="true">Da definire in base alla conferma d'ordine</div>
-    </div>
-</div>
+        <div class="section reference-section">
+            <h3>RIFERIMENTI PROGETTO</h3>
+            <div class="info-grid">
+                <label>Vs. Rif.:</label>
+                <div class="editable" contenteditable="true">RdO dated 21 June 2024</div>
+                <label>Oggetto:</label>
+                <div class="editable" contenteditable="true">QUOTATION FOR EXECUTION OF PRE/POST HEATING AND LOCALIZED PWHT IN EGYPT (GIZA), ON WELDING JOINTS DESCRIBED IN YOUR REQUEST</div>
+                <label>Descrizione sintetica attività da svolgere:</label> <div class="editable" contenteditable="true">Inserire qui una breve descrizione delle attività da svolgere</div>
+                <label>Località:</label>
+                <div class="editable" contenteditable="true">Giza, Egypt</div>
+                <label>Tempistiche:</label>
+                <div class="editable" contenteditable="true">Da definire in base alla conferma d'ordine</div>
+            </div>
+        </div>
 
         <div class="section conditions-section">
             <h3>CONDIZIONI COMMERCIALI</h3>
@@ -1156,7 +1158,7 @@
         const CLOUDCONVERT_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMjc0ZDA4ZmY0NGRiOThhMjY1OWNhZGY5ZmIxNWRlNDM3ZDZiY2U2MzdhMGRjYTk4OTAzZWZhNWMxNDQ3YzNmM2RiMmIwMDg0OGIwM2Y0NDEiLCJpYXQiOjE3NTA2Njc5NTQuMjQ3ODg0LCJuYmYiOjE3NTA2Njc5NTQuMjQ3ODg1LCJleHAiOjQ5MDYzNDE1NTQuMjQwNjM2LCJzdWIiOiI3MjI2Mjc1NiIsInNjb3BlcyI6WyJ1c2VyLnJlYWQiLCJ1c2VyLndyaXRlIiwidGFzay5yZWFkIiwidGFzay53cml0ZSIsIndlYmhvb2sucmVhZCIsIndlYmhvb2sud3JpdGUiLCJwcmVzZXQucmVhZCIsInByZXNldC53cml0ZSJdfQ.k86uj1C5YPF8Kas4ep3tIG7r0Rl0wmh-oojqNp1HN8UsD5G2gcJ1NTueRapmjsXPm3QTTmg49eaSWbZazFRI97oK3tPI80HslFgvK_jYmvSzvC0W1fZoMlpoHmQJi7Unesnyh4t2irKIu2BxYvNyx3rmSHYbv80cm1ZGaqLsg45q86uVDOkW_OmhacEWEX3rAlW8YS8P3I6kTTF59rbY8LSGs5ACB1qy8Nwm2CX2a6e9jqXJZchDqaAwr4sGRPtnGgkgceW_W3v0-Y6v4c9YOgeWhyN9i2bn7E0tfvR9lxML8x-CYJ8ANloiE_yXXSPs25Fn2F9JlgQUR3P-pPJ79H-oWBZ1XlxJwLMgmda5Qqi_T72xsfo6ThnQVJQLNoqatVw6J33soRbrhDyCW6aYR1g-1t2Y5K4pdt4Evppws0aU7VRgn5cEQN20YotAGMZnOXN3IrAqWbCUCUHblnQ7_MGmE3Q9vM1VL7dNvrM2zT1jnp0irpwZy_WFsimqaPpRfMlAGaUNK0MhWFGQiiHFWBRxPchPfL_HnH3Xzn8Qg2QJ4A_aVIUW4-mH4hGmERFt10HjQ0wda51XS-yTn9vlE01pZylOPYixFtNdoM9ASfziseYT4ITZK4EMe7dSaaMJAPl5NICHs8zx1qOkglRgwREWeti_XtVHZ4FocMKCMaQ';
         const CLOUDCONVERT_BASE_URL = 'https://cloudconvert.com';
         
-        let rowCounter = 3;
+        let rowCounter = 3; /* Questa variabile verrà aggiornata dalla funzione renumberTableRows */
         
         // ================================
         // CLOUDCONVERT EXPORT WORD - NUOVA IMPLEMENTAZIONE
@@ -1748,24 +1750,24 @@ function generatePDF() {
                     return;
                 }
                 
-                let listText = 'Seleziona l\'offerta da caricare dal browser:\n\n';
-                savedOffers.forEach((offer, index) => {
-                    const date = new Date(offer.savedDate).toLocaleDateString('it-IT');
-                    listText += `${index + 1}. ${offer.name} (${date})\n`;
-                });
-                
-                const choice = prompt(listText + '\nInserisci il numero:');
-                const choiceIndex = parseInt(choice) - 1;
-                
-                if (choiceIndex >= 0 && choiceIndex < savedOffers.length) {
-                    const selectedOffer = savedOffers[choiceIndex];
-                    
-                    if (confirm(`Caricare "${selectedOffer.name}" dal browser?\n\nI dati attuali verranno sostituiti.`)) {
-                        applyAllData(selectedOffer.data);
-                        showNotification(`✅ Offerta "${selectedOffer.name}" caricata dal browser!`, 'success');
+                const searchCode = prompt('Inserisci il Codice Pratica del preventivo da caricare:');
+                if (!searchCode || !searchCode.trim()) {
+                    showNotification('ℹ️ Codice Pratica non inserito', 'info');
+                    return;
+                }
+
+                const foundOffer = savedOffers.find(offer => 
+                    offer.data && offer.data.documentInfo && 
+                    offer.data.documentInfo.offerNumber.toLowerCase() === searchCode.trim().toLowerCase()
+                );
+
+                if (foundOffer) {
+                    if (confirm(`Caricare il preventivo per il Codice Pratica "${foundOffer.data.documentInfo.offerNumber}"?\n\nI dati attuali verranno sostituiti.`)) {
+                        applyAllData(foundOffer.data);
+                        showNotification(`✅ Preventivo con Codice Pratica "${foundOffer.data.documentInfo.offerNumber}" caricato dal browser!`, 'success');
                     }
                 } else {
-                    showNotification('❌ Selezione non valida', 'error');
+                    showNotification('❌ Nessun preventivo trovato con quel Codice Pratica', 'error');
                 }
                 
             } catch (error) {
@@ -1834,15 +1836,35 @@ function generatePDF() {
         // GESTIONE TABELLA
         // ================================
         
+        function renumberTableRows() { /* NEW: Funzione per rinumerare le righe */
+            let currentPos = 0;
+            const rows = document.querySelectorAll('#quotationTableBody tr');
+            rows.forEach(row => {
+                // Controlla se la riga è un'intestazione di sezione o una riga di totale
+                if (row.querySelector('.section-header-cell') || row.querySelector('td[colspan="4"]')) {
+                    // Se è un'intestazione o un totale, non numerarla e resetta il contatore se è una sezione
+                    if (row.querySelector('.section-header-cell')) {
+                        currentPos = 0; // Reset della numerazione per la nuova sezione
+                    }
+                    return; 
+                }
+                
+                const posCell = row.querySelector('td:first-child');
+                if (posCell) {
+                    currentPos++;
+                    posCell.textContent = currentPos;
+                }
+            });
+            rowCounter = currentPos; /* Aggiorna rowCounter al numero finale */
+        }
+
         function addTableRow() {
             try {
-                rowCounter++;
                 const tbody = document.getElementById('quotationTableBody');
                 
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
-                    <td>${rowCounter}</td>
-                    <td>
+                    <td></td> <td>
                         <div class="editable" contenteditable="true"><strong>Nuova voce:</strong> Descrizione del servizio</div>
                     </td>
                     <td>
@@ -1858,6 +1880,7 @@ function generatePDF() {
                 `;
                 
                 tbody.appendChild(newRow);
+                renumberTableRows(); /* MODIFIED: Chiama per aggiornare la numerazione */
                 showNotification('✅ Nuova riga aggiunta alla tabella', 'success');
                 
             } catch (error) {
@@ -1869,6 +1892,7 @@ function generatePDF() {
         function deleteRow(button) {
             if (confirm('🗑️ Eliminare questa riga?')) {
                 button.closest('tr').remove();
+                renumberTableRows(); /* MODIFIED: Chiama per aggiornare la numerazione */
                 showNotification('🗑️ Riga eliminata', 'info');
             }
         }
@@ -2146,8 +2170,9 @@ function generatePDF() {
                 reference: {
                     yourRef: getEditableValue('.reference-section .editable', 0),
                     object: getEditableValue('.reference-section .editable', 1),
-                    location: getEditableValue('.reference-section .editable', 2),
-                    timeline: getEditableValue('.reference-section .editable', 3)
+                    description: getEditableValue('.reference-section .editable', 2), /* NEW: per il nuovo campo */
+                    location: getEditableValue('.reference-section .editable', 3), /* MODIFIED: indice aggiornato */
+                    timeline: getEditableValue('.reference-section .editable', 4)  /* MODIFIED: indice aggiornato */
                 },
                 conditions: {
                     validity: getEditableValue('.conditions-section .editable', 0),
@@ -2288,8 +2313,9 @@ function generatePDF() {
                 if (data.reference) {
                     setEditableValue('.reference-section .editable', 0, data.reference.yourRef);
                     setEditableValue('.reference-section .editable', 1, data.reference.object);
-                    setEditableValue('.reference-section .editable', 2, data.reference.location);
-                    setEditableValue('.reference-section .editable', 3, data.reference.timeline);
+                    setEditableValue('.reference-section .editable', 2, data.reference.description); /* NEW: per il nuovo campo */
+                    setEditableValue('.reference-section .editable', 3, data.reference.location); /* MODIFIED: indice aggiornato */
+                    setEditableValue('.reference-section .editable', 4, data.reference.timeline);  /* MODIFIED: indice aggiornato */
                 }
                 
                 if (data.conditions) {
@@ -2323,15 +2349,7 @@ function generatePDF() {
                     }
                 }
 
-                const currentTableRows = document.querySelectorAll('#quotationTableBody tr');
-                rowCounter = 0;
-                currentTableRows.forEach(row => {
-                    if (!row.querySelector('.section-header-cell') && !row.querySelector('td[colspan="4"]') && row.cells.length > 1) {
-                        rowCounter++;
-                        const posCell = row.querySelector('td:first-child');
-                        if(posCell) posCell.textContent = rowCounter;
-                    }
-                });
+                renumberTableRows(); /* MODIFIED: Chiama per rinumerare dopo aver applicato i dati */
                 
             } catch (error) {
                 console.error('Errore applicazione dati:', error);
@@ -2465,6 +2483,7 @@ function generatePDF() {
                 logoText.style.display = 'none';
             }
             
+            renumberTableRows(); /* MODIFIED: Chiama per rinumerare le righe all'avvio */
             showNotification('⚡ Sistema Flash Control con CloudConvert pronto!', 'success');
         }
         
