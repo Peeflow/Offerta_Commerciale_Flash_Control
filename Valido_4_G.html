@@ -786,8 +786,8 @@
             .section-header-cell {
                 background: #e3f2fd !important;
                 color: #1976d2 !important;
-                font-weight: bold !important;
-                text-align: center !important;
+                font-weight: bold;
+                text-align: center;
                 padding: 3mm !important;
             }
 
@@ -930,9 +930,12 @@
                 </div>
             </div>
             <div class="document-info">
-                <div><strong>Codice Pratica</strong> <span class="editable" contenteditable="true" id="codicePratica">24147FLC_rev.0</span></div>
+                <div>
+                    <strong>Codice Pratica</strong> 
+                    <select class="editable" id="codicePraticaSelect" onchange="handleCodicePraticaChange()"></select>
+                </div>
                 <div><strong>DATE</strong> <span class="editable" contenteditable="true">2024-06-13</span></div>
-                <div><strong>SHEET</strong> <span class="editable" contenteditable="true">1</span></div>
+                <div><strong>Numero Commessa</strong> <span class="editable" id="numeroCommessa" contenteditable="true"></span></div>
                 <div><strong>VALID UNTIL</strong> <span class="editable" contenteditable="true">2024-09-13</span></div>
             </div>
         </div>
@@ -941,7 +944,7 @@
             <h3>INFORMAZIONI CLIENTE</h3>
             <div class="info-grid">
                 <label>Azienda:</label>
-                <div class="editable" contenteditable="true">AIM SERVICE Italia s.r.l.</div>
+                <select class="editable" id="aziendaSelect" onchange="handleAziendaChange()"></select>
                 <label>Referente:</label>
                 <div class="editable" contenteditable="true">Mr. Ciraolo</div>
                 <label>Email:</label>
@@ -1160,521 +1163,533 @@
         
         let rowCounter = 3; /* Questa variabile verrà aggiornata dalla funzione renumberTableRows */
         
-        // ================================
-        // CLOUDCONVERT EXPORT WORD - NUOVA IMPLEMENTAZIONE
-        // ================================
-        
-        async function exportToWordCloudConvert() {
-            showNotification('🚀 Avvio conversione CloudConvert...', 'info');
-            
-            try {
-                const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
-                const currentDate = new Date().toISOString().split('T')[0];
-                const fileName = `FlashControl_${offerNumber}_${currentDate}`;
-                
-                // Genera HTML ottimizzato per Word
-                const htmlContent = generateOptimizedWordHTML();
-                
-                // Step 1: Crea il job
-                const job = await createCloudConvertJob();
-                showNotification('📄 Job CloudConvert creato...', 'info');
-                
-                // Ottieni gli IDs dei task per upload e convert
-                const uploadTaskId = job.data.tasks.find(t => t.name === 'upload-html').id;
-                const convertTaskId = job.data.tasks.find(t => t.name === 'convert-to-docx').id;
-                const exportTaskId = job.data.tasks.find(t => t.name === 'export-docx').id; // Ottieni l'ID del task di export
-                
-                // Step 2: Carica il file HTML
-                await uploadHTMLToCloudConvert(uploadTaskId, htmlContent, fileName);
-                showNotification('⬆️ File HTML caricato...', 'info');
-                
-                // Step 3: Attendi e scarica il risultato dal task di export specifico
-                // Non è necessario avviare esplicitamente la conversione con una chiamata separata
-                // se il job è stato configurato correttamente con input e output.
-                // CloudConvert avvia la conversione non appena l'input è disponibile.
-                await waitAndDownloadResult(exportTaskId, fileName); // Passa l'ID del task di export
-                
-            } catch (error) {
-                console.error('Errore CloudConvert:', error);
-                showNotification(`❌ Errore CloudConvert: ${error.message || error}`, 'error'); // Messaggio di errore migliorato
+        // Global variables to store parsed CSV data
+        let parsedCsvData = [];
+        let praticaDataMap = new Map(); // Map RIF.PRATICA to its full row data
+        let uniqueClienti = new Set(); // Set of unique client names
+
+        // CSV content embedded directly from the provided file
+        const csvContent = ` ,,,,Livello Documento: Modulo,,,,,PC,
+,,,, PROTOCOLLO COMMESSE,,,,,00,
+,,,,,,,,,,
+N° Offerta,Data Offerta,Cliente,RIF.PRATICA,Esito Ordine,N° di Commessa,n° Ordine,Descrizione lavoro,Luogo di lavoro,Note,
+1.0,45659.0,SAIPEM,25001FLC,POSITIVO,25001FLC,5000042590,Bid Doc584733093 - RFQ 6001615411 - CONTROLLI NON DISTRUTTIVI - PR 11692627 ,Arbatax-Macchiareddu,CONVENZIONE EX COMMESSA 21044FLC & 23082FLC & 24009FLC,
+2.0,45659.0,LILIANA,25002FLC,POSITIVO,25002FLC,,TT SOLUBILIZZAZIONE E CND VARI,PRESSO NS.
+ e LORO SEDE A PAVIA,EX COMMESSA 21402FLC & 23098FLC & 24010FLC - REV.
+ PREZZI PER 2025,
+3.0,45659.0,NDT SICILY,25003FLC,POSITIVO,25003FLC,,Prestazione tecnici,,EX COMMESSA 20072FLC & 23090FLC & 24014FLC,
+4.0,45659.0,ALPERIA,25004FLC,POSITIVO,25004FLC,3679 & 3683,Accordo quadro x Controlli distruttivi e non ,C.li idroelettriche Vipower e Greenpower,GARE 10023921+10023928 (ex commessa 23127FLC & 24015FLC),
+5.0,45659.0,DOLOMITI ENERGIA,25005FLC,POSITIVO,25005FLC,4300003515,GARA CND CONDOTTE FORZATE,VARIE CENTRALI TRENTINO A.A.,EX COMMESSA 22317FLC & 23109FLC & 24016FLC,
+6.0,45659.0,TECNOMEC ENGINEERING,25006FLC,POSITIVO,25006FLC,688/22,PWHT FORNO GENERICA,TARANTO,EX 22088FLC & 23219FLC & 24019FLC,
+7.0,45659.0,CARPENTERIA CORSI,25007FLC,POSITIVO,25007FLC,,PWHT FORNO,MASSA & SARZANA, EX COMMESSA 23092FLC & 23093FLC & 24021FLC,
+8.0,45659.0,SBM IRFI,25008FLC,POSITIVO,25008FLC,,GENERICA PER INFORNATE,Pian Camuno,EX COMMESSA 21063FLC & 23121FLC & 24022FLC (invio anche di offerta per proluna forno),
+9.0,45659.0,OFFICINE RAM POWER,25009FLC,POSITIVO,25009FLC,24/00092 ,PWHT in forno e localizzati su piping in P11,loro sede Ravenna e ns.
+ sede FC,EX COMMESSA 23152FLC & 24023FLC,
+10.0,45659.0,OCS S.p.A.,25010FLC,POSITIVO,25010FLC,,Commessa generica OCS ,FORNO PADOVA,ex COMMESSA 08105FTC e 20051FLC e 23086FLC & 24024FLC - rev.1 nuovo prezziario,
+11.0,45659.0,TECNO SERVICE srl,25011FLC,POSITIVO,25011FLC,208,CND GENERICI, loro aree Lomello (PV),EX COMMESSA 23217FLC & 24012FLC,
+12.0,45659.0,SACMI,25012FLC,POSITIVO,25012FLC,,Trattamenti termici manufatti,forno sede San Vittore,EX COMMESSA 20055FLC & 23123FLC 24025FLC,
+13.0,45659.0,PELFA,25013FLC,POSITIVO,25013FLC,1473 (RTS),ORDINE GENERICO PWHT FORNO,SEDE SAN VITTORE,EX COMMESSA 13078RTF & 21036FLC & 23094FLC & 24026FLC,
+14.0,45660.0,PARESA S.p.A.,25014FLC,POSITIVO,25014FLC,APPALTO 2021-101-1195 REV.3,"PWHT, CND, DIGITALIZZAZIONE FILM",Gualdo + ns sede Mercato,EX COMMESSA 21006FLC + 22332FLC + 23091FLC & 24032FLC,
+15.0,45660.0,BABBINI,25015FLC,POSITIVO,25015FLC,ordini vari per consegna alberi,INFORNATE + CND ALBERI ,forno sede San Vittore,"COMMESSA GENERICA PASSATA DA RTS DAL 01.12.2020 AL NR.
+ 20037FLC, POI 23085FLC & 24031FLC",
+16.0,45660.0,OFFICINE DEL SAVIO,25016FLC,POSITIVO,25016FLC,offerta firmata,GENERICA PER CND+INFORNATE SEDE,"CND c/o Gualdo, infornate c/o ns.
+ sede",EX COMMESSA 21012FLC+ 23122FLC +24033FLC,
+17.0,45660.0,SACIM,25017FLC,POSITIVO,25017FLC,,CND,loro aree Cesena,EX COMMESSA 17104NFC & 21052FLC & 23096FLC,
+18.0,45660.0,ALFA LAVAL,25018FLC,POSITIVO,25018FLC,,Eddy current ,Israele,,
+19.0,45664.0,INSPECTA,25019FLC,positivo,25019FLC,,PAUT SERBATOI,ANVERSA- BELGIO,CONTATTO DA PARESA-  EX COMMESSA 24151FLC,
+20.0,45664.0,TOSCOTEC,25020FLC,POSITIVO,25020FLC,ALL. D contratto,GENERICA PER PWHT in FORNO,STABILIMENTO MASSA,ex COMMESSA 14188RTF e 20070FLC e 23089FLC & 24027FLC,
+21.0,45666.0,BREMBANA E ROLLE,25021FLC,POSITIVO,25021FLC,,COMMESSA GENERICA+ VENDITA BLOCCHI REFRATTARI PER PLATEA,MARGHERA,EX COMMESSA 14205RTF & 21038FLC & 23095FLC & 24029FLC,
+22.0,45666.0,Cannon Artes S.p.A. ,25022FLC,POSITIVO,25022FLC,,PWHT in forno+ sporadici localizzati,loro aree,EX COMMESSA 21208FLC & 23139FLC & 24030FLC,
+23.0,45667.0,COMCE,25023FLC,POSITIVO,25023FLC,66 & 237 & 1036-24,generica per PWHT forno e CND + RT su serpentini,PRESSO NS.  e LORO SEDE A CESENA,EX COMMESSA 22011FLC & 23099FLC & 24034FLC & 24119FLC,
+24.0,45667.0,VECOMONT,25024FLC,attesa,,,RADIOGRAFIE SU LINEE,,RIF.
+ EX COMMESSA 24011FLC,
+25.0,45671.0,FORGIA DI BOLLATE,25025FLC,POSITIVO,24025FLC,2225000038, N. 1+1 Campana chiusa con predisposizione per bruciatori dimensione esterna mt 8.00x6.00x4.00 , plant di Canneto,rif.
+ pratica 24207FLC,
+26.0,45671.0,GE VERNOVA,25026FLC,attesa,,,NDT and Welding Services for Janub project,Azerbaijan,rev.1 -divisa per unità di lavoro,
+27.0,45672.0,  T.G.E.
+ Ventilatori S.r.l.,25027FLC,POSITIVO,25027FLC,,CND su ventilatori e giranti,loro aree,EX COMMESSA 23235FLC +24060FLC,
+28.0,45672.0,FIRE TECHNOLOGY,25028FLC,positivo,25028FLC,accettazione offerta,OFFERTA GENERICA,,ex commessa 23279FLC + 24149FLC,
+29.0,45672.0,ROSETTI MARINO,25029FLC,POSITIVO,25029FLC,122A70-SDA-10438 ,LPWHT su piping,aree Ravenna,"rev,2",
+30.0,45672.0,"
+EnPlus S.r.l.",25030FLC,attesa,,,RT-LP- PRERISCALDI + LPWHT su 3 saldature di valvole di sicurezza di caldaia NooterEriksen,Enplus San Severo (FG),,
+31.0,45673.0,GE VERNOVA - FIELDCORE GREEK BRANCH,25031FLC,POSITIVO,25031FLC,4900460140+4900460144 +4900460333,CND su vari componenti,GRECIA,RIF.
+ PRATICA 24204FLC + ADDENDUM ORDINE 4900460333,
+32.0,45674.0,TUBITAL,25032FLC,PERSO,,,LPWHT su circolare di curva apparecchio,aree Marghera,,
+33.0,45677.0,OFF.
+ RAM POWER,25033FLC,POSITIVO,25033FLC,25/00078,controlli VT per CP2,RAVENNA,EX COMMESSA 24160FLC,
+34.0,45677.0,OFFICINE RESTA,25034FLC,attesa,,,LPWHT su 2 saldature,loro sede Marghera,LAVORI FINE ESTATE 2025,
+35.0,45677.0,F.LLI AMADUCCI,25035FLC,attesa,,,PWHT AC su apparecchi,loro aree Bertinoro,,
+36.0,45677.0,QUALITY TEST,25036FLC,POSITIVO,25036FLC,,GENERICA PER TECNICI CND/PWHT,loro sede Ravenna o altre sedi,EX COMMESSA 22286FLC & 23110FLC & 24059FLC,
+37.0,45677.0,NDT AND INSPECTION,25037FLC,POSITIVO,25037FLC,,PRESTAZIONI TECNICI VARIE,,EX COMMESSA 24068FLC,
+38.0,45677.0,CMP,25038FLC,positivo,25038FLC,vari ordini per PWHT,trattamenti termici in forno,officina Bottrighe,RIF.
+ EX COMMESSA 21043FLC + 23199FLC +24097FLC,
+39.0,45677.0,SAIPEM ,25039FLC,POSITIVO,25039FLC,31619818,Progetto IRPA,CANTIERE CAGLIARI,EX COMMESSA 24171FLC,
+40.0,45679.0,MODOMEC,25040FLC,attesa,,,PWHT AC su colonna,loro aree Taranto,,
+41.0,45680.0,RFTS TECHNOLOGIES,25041FLC,POSITIVO,25041FLC,,PRESTAZIONE TECNICO ESPERTO UT,NIGERIA,EX COMMESSA 23154FLC+ 24020FLC,
+42.0,45680.0,SIMIC S.p.A.,25042FLC,POSITIVO,25042FLC,2400054_L ,FORNO 8X6X22 + VENDITA MODULI REFRATTARI,LORO AREE,EX COMMESSA 23282FLC +24045FLC,
+43.0,45680.0,CARPENTERIA CORSI,25043FLC,PERSO,,,"LPWHT su saldatura circolare del fondo,",loro aree,,
+44.0,45681.0,NEW ENERGY,25044FLC,POSITIVO,25044FLC,,CND VARI,LORO AREE,ex COMMESSA 24110FLC,
+45.0,45681.0,TUBITAL,25045FLC,positivo,25045FLC,23054,GESTIONE CICLI TERMICI ,C/O LORO AREE,ex commessa 23002FLC+ 24150FLC,
+46.0,,MANUTENZIONI INERENTI FORNI,25900FLC,POSITIVO,25900FLC,,manutenzioni generiche pannellatura e strutture ,magazzino,ex commessa 24900FLC,
+47.0,45681.0,BREMBANA E ROLLE,25046FLC,positivo,25046FLC,23031-ODA24-004223,"1 saldatura circonferenziale mantello, tra virole pos.201-220 Øi2540mm, sp.130mm", Ricengo,EX COMMESSA 24209FLC,
+48.0,45681.0,TRATENOR,25047FLC,POSITIVO,25047FLC,,PWHT e servizi accessori,,EX COMMESSA 23049FLC+ 24013FLC,
+49.0,45681.0,BREMBANA E ROLLE,25048FLC,positivo,25048FLC,23060-ODA24-003957,LPWHT SU CIRCOLARE TRA MANTELLO e PIASTRA TUBIERA,LORO AREE ALBIGNASEGO,EX COMMESSA 24196FLC,
+50.0,45684.0,TECNO REFRACTORIES,25049FLC,attesa,,,DRY OUT SU APPARECCHIO,OFFICINA MARGHERA,chiamato 
+ Viganò da Franco,
+51.0,45684.0,ALFA LAVAL,25050FLC,POSITIVO,25050FLC,a consuntivo,TECNICO X ULTRASUONI ,OMAN,,
+52.0,45687.0,ALFA LAVAL,25051FLC,POSITIVO,25051FLC,a consuntivo,PRERISCALDI ,SUISIO (BG),EX COMMESSA 24189FLC,
+53.0,45687.0,SIMIC S.p.A.,25052FLC,,,,Forno a Campana con movimentazione con Gru semovente ,loro aree Marghera,,
+54.0,45688.0,OCS S.p.A.,25053FLC,attesa,,,LPWHT su saldature circonferenziali mantello/fondo,c/o LORO AREE,,
+55.0,45692.0,CAM IMPIANTI,25054FLC,POSITIVO,25054FLC,ORDINE GENERICO,CONTRATTO ANNUALE 2025,,VECCHIA COMMESSA 24082FLC,
+56.0,45692.0,IWN SRL,25055FLC,POSITIVO,25055FLC,mail conferma,RISCALDAMENTO TUBAZIONE,MARGHERA,,
+57.0,45693.0,BREMBANA E ROLLE,25056FLC,POSITIVO,,25-000403,LPWHT SU SALDATURE CIRCONFERENZIALI,MARGHERA,loro commessa 23069,
+58.0,45699.0,SAIPEM,25057FLC,NEGATIVO,,,PMI ,MARGHERA,PASSATA A NDT AND INSPECTION,
+59.0,45699.0,CHRISTOF GROUP,25058FLC,attesa,,,ET+VT+PT+UT,BRAZILE,,
+60.0,45700.0,CMC SUD,25059FLC,POSITIVO,25059FLC,2.449/25,CND,AVENZA,,
+61.0,45700.0,CARP.
+ CORSI,25060FLC,attesa,,,VT+PT+MT su cassoni portapinne,sede di Castelnuovo Magra,vogliono quotazione a corpo,
+62.0,45700.0,CARP.
+ CORSI,25061FLC,POSITIVO,25061FLC,,PWHT di 4 giranti,sede di Castelnuovo Magra,,
+63.0,45701.0,MAX STREICHER,25062FLC,attesa,,,LPWHT + EVENTUALE FORNO,STOGIT FIUME TRIESTE,,
+64.0,45702.0,INCO INTERNATIONAL FZCO,25063FLC,POSITIVO,25063FLC,INI422-SUB-PWHT-003,PWHT COMBUSTIONE INTERNA SFERA ,ABU DHABI,ex commessa 24176FLC,
+65.0,45702.0,INDUSTROREMONT d.o.o,25064FLC,,,,CND IN SITO,CORTEOLONA (PV) PLANT,,
+,45702.0,OFAR,25065FLC,POSITIVO,25065FLC,2125001839.0,LPWHT SU CORNA SALDATE SU PIANO PRESSA,LORO AREE,,
+67.0,45705.0,OCS S.p.A.,25066FLC,attesa,,,PWHT AC SERBATOI + LOC.
+ TRONCHI,LORO AREE,RIF. VECCHIA PRATICA 20063FLC (vedi risp. Cangini),
+68.0,45706.0,ETI SPA,25067FLC,POSITIVO,25067FLC,001OL/2019,CND SU ADDUTTORE,SPELLO (PG),EX COMMESSA 23125FLC + 24007FLC,
+69.0,45707.0,OFRA,25068FLC,attesa,,,PWHT IN FORNO ,ns aree,,
+70.0,45707.0,GE VERNOVA-FIELDCORE,25069FLC,POSITIVO,25069FLC,4900470625 ,NDT ON FPI IN LOAD COUPLING,AGIOS NICOLAOS - GREECE,,
+71.0,45708.0,GRUPPO ANTONINI ENERGY SRL,25070FLC,POSITIVO,25070FLC,560/GE/C56,PWHT in forno su separatori e ricevitori,loro aree,,
+72.0,45708.0,CMC SUD,25071FLC,POSITIVO,25071FLC,2.450/25,PAUT-UT ,SCHIO,,
+73.0,45709.0,PRISMA SRL,25072FLC,POSITIVO,25072FLC,offerta firmata,OFFERTA GENERICA,loro aree,,
+74.0,45712.0,COIM,25073FLC,attesa,,,OFFERTA GENERICA,loro aree,,
+75.0,45713.0,NAPOLITANO INOX,25074FLC,attesa,,,OFFERTA GENERICA,LORO AREE,,
+76.0,45715.0,PELFA,25075FLC,attesa,,,LPWHT SU CIRCOLARI ,LORO AREE A BUJA (UD),,
+77.0,45721.0,OCIS,25076FLC,POSITIVO,25076FLC,6701 / 1687 / 25,OFFERTA GENERICA,LORO AREE,,
+78.0,45721.0,ATB Riva Calzoni,25077FLC,positivo,25077FLC,8406,Forno per PWHT su 3 biforcazioni,area portuale in Colombia,rif.
+ pratica 24210FLC,
+79.0,45723.0,ATB Riva Calzoni- Christof Group,25078FLC,POSITIVO,25078FLC,42250220.0,preriscaldi e LPWHT per la realizzazione e dopo la riparazione di un anello interno ad un reattore ,Grecia,RIF.
+ PRATICA 24197FLC,
+80.0,45726.0,WALTER TOSTO,25079FLC,attesa,,,PWHT AC su 4 sfere di stoccaggio,ANTWERP- BELGIO,,
+81.0,45726.0,TECNO REFRACTORIES,25080FLC,attesa,,,DRY-OUT REFRATTARIO DI TERMOVALORIZZATORE,FROSINONE,,
+82.0,45727.0,Next Level Refractories ,25081FLC,attesa,25081FLC,approvazione via mail,DRY OUT CON RESISTENZE SU SEZIONI DI BRUCIATORI CTS,CHIETI,REV.1,
+83.0,45730.0,TOSCOTEC,25082FLC,POSITIVO,25082FLC,EMESSI X CAD.
+ INTERVENTO,PREZZARIO PWHT LOCALIZZATI,LORO AREE MASSA,RIF. EX PRATICHE 15104RTS e 17059RTS,
+84.0,45734.0,SCRM,25083FLC,,,,FORNO 10X4X4 per PWHT SERBATOI e TALLONI,CISTERNA DI LATINA,,
+85.0,45737.0,BREMBANA E ROLLE,25084FLC,POSITIVO,25084FLC,,LPWHT su saldatura di tronchetto,Marghera,,
+86.0,45737.0,DONELLI,25085FLC,attesa,,,PWHT PER POLIMERIZZAZIONE DI LINING DI 1 SERBATOIO,PADOVA o MARGHERA,,
+87.0,45737.0,Next Level Refractories ,25086FLC,attesa,,,DRY OUT SU REFRETTARIO,UNGHERIA,,
+88.0,45743.0,CMC SUD,25087FLC,attesa,,,IRIS SU TUBI diam.
+ 19 mm,zona VICENZA,,
+89.0,45750.0,WELDING & INSPECTION,25088FLC,POSITIVO,25088FLC,3/2025,LPWHT ,officine OFMECO,RICHIESTO ADDENDUM,
+90.0,45751.0,STEEL LINE,25089FLC,POSITIVO,25089FLC,340,CND su 5 serbatoi,MONDOLFO,,
+91.0,45756.0,WELDING & INSPECTION,25090FLC,POSITIVO,25088FLC, 4/2025,LPWHT,officine OFMECO,COMMESSA GENERICA 25088FLC + addendum per saldatura aggiuntiva,
+92.0,45757.0,GRUPPO ANTONINI ENERGY SRL,25091FLC,POSITIVO,25091FLC,988/GE,PWHT  su 2 scambiatori,LORO AREE,,
+93.0,45757.0,CATTANEO MECCANICA,25092FLC,attesa,,,LPWHT  su assieme di 3 saldature,loro sede,,
+94.0,45758.0,ETI SPA,25093FLC,attesa,,,PRESTAZIONE ISPETTORE,CANTIERI VARI,/,/
+95.0,45769.0,WALTER TOSTO,25094FLC,attesa,,,FORNO 12X12X36 m + PWHT di 8 storage bullet,ROMANIA,,
+96.0,45770.0,CARPENTERIA CORSI,25095FLC,attesa,,,PWHT in forno di vessel Electic Heater item EH-501, Castelnuovo Magra (SP),,
+97.0,45770.0,VE.DA.
+ Srls,25096FLC,attesa,,,OFFERTA GENERICA CND,loro aree Pavia,,
+98.0,45771.0,Bruno Presezzi ,25097FLC,attesa,,,"preriscaldi su 1 corona polare, in preparazione all’incalzatura con l’albero",loro aree,,
+99.0,45771.0,OFFICINE RESTA,25098FLC,attesa,,,LPWHT su circolare di scambiatore di calore- JOB 20/23,sede Marghera,,
+100.0,45771.0,OFFICNE RESTA,25099FLC,attesa,,,LPWHT su circolare di scambiatore di calore- JOB 23/23,sede Marghera,,
+101.0,45777.0,SIMIC S.p.A.,25100FLC,POSITIVO,25100FLC, 2500686-A,VENDITA CARRELLONE 400T,,carrellone acquisito da OFMECO,
+102.0,45782.0,CHRISTOF GROUP,25101FLC,,,,UT su circa 940 saldature di tubi,loro aree Ternitz,,
+103.0,45876.0,CARP.
+ CORSI,25102FLC,POSITIVO,25102FLC,P.O. 567-066-24 REV. 1,FORNO per trattamento 2 vcessel,MASSA,rev.1,
+104.0,45789.0,OFMECO PRESSURE COMPONENTS,25103FLC,POSITIVO,25103FLC,offerta firmata,RT su giunti in acciaio inox e al carbonio,loro aree,,
+105.0,45824.0,FBM HUDSON,25104FLC,attesa,,,PWHT LOCALIZZATI ,LORO AREE,rev.1,
+106.0,45796.0,Next Level Refractories ,25105FLC,attesa,,,DRY OUT 22 VESSEL ,ORTONA (CH),,
+107.0,45796.0,OFMECO PRESSURE COMPONENTS,25106FLC,attesa,,,LPWHT SALDATURE AP5 & AP6,loro aree,,
+108.0,45798.0,CND CONTROL,25107FLC,POSITIVO,25107FLC,offerta firmata,MT+VT+ certificazione,DIGA ENEL PIACENZA,,
+109.0,45798.0,MECON,25108FLC,attesa,,,CND vari,ACEA SAN VITTORE LINEA 2 e 3,,
+110.0,45800.0,AIM SERVICE,25109FLC,attesa,,,PREZZARIO PWHT LOCALIZZATI ,officina CASTELFRANCO VENETO,rev.1,
+111.0,45804.0,CND SERVICE,25110FLC,attesa,,,intervento  tecnico + bruciatore,loro aree di Civitavecchia,,
+112.0,45804.0,TERMOTECNICA INDUSTRIALE,25111FLC,attesa,,,Smagnetizzazione per Tubazioni,Cavarzere (VE),,
+113.0,30/05/205,CMC SUD,25112FLC,POSITIVO,25112FLC,2490.25,TECNICI PER RT,AVENZA,rev.1,
+114.0,45811.0,FIELDCORE GRECIA,25113FLC,POSITIVO,25113FLC,4900502795+4900502780+4900502913,CND POWER OUTAGE,KORINTHOS,,
+115.0,45814.0,CARPENTERIA CORSI,25114FLC,POSITIVO,656/117/24 REV.
+ 0,"PWHT localizzato su saldatura circolare del fondo (più tallone di produzione),",AREE MASSA,,
+116.0,45819.0,PARESA S.p.A.,25115FLC,attesa,,,PWHT AC SU 1 SFERA,MAROCCO,,
+117.0,45824.0,MODOMEC SRL,25116FLC,attesa,,,LPWHT SU REATTORE,TARANTO,,
+118.0,45825.0,RAM  PER SAIPEM ,25117FLC,attesa,,,CND SU PROGETTO SAIPEM ,Ravenna ,,
+119.0,45827.0,SOLESI SPA ,25118FLC,attesa,,,cnd su area ponticelle ravenna ,Ravenna,,
+120.0,45827.0,AIM SERVICE,25119FLC,attesa,,,CND+PWHT,officina ARGENTA (FE),,
+121.0,45831.0,SIMIC S.p.A.,25120FLC,attesa,,,LPWHT su subo P22,Polo energetico Reggio Emilia- IREN,,
+122.0,45833.0,OCS S.p.A.,25121FLC,,,,PWHT circonferenziale d'unione mantello/fondo (job 207714-207715),Padova,,
+123.0,,,,,,,,,,
+124.0,,,,,,,,,,
+125.0,,,,,,,,,,
+126.0,,,,,,,,,,
+127.0,,,,,,,,,,
+128.0,,,,,,,,,,
+129.0,,,,,,,,,,
+130.0,,,,,,,,,,
+131.0,,,,,,,,,,
+132.0,,,,,,,,,,
+133.0,,,,,,,,,,
+134.0,,,,,,,,,,
+135.0,,,,,,,,,,
+136.0,,,,,,,,,,
+137.0,,,,,,,,,,
+138.0,,,,,,,,,,
+139.0,,,,,,,,,,
+140.0,,,,,,,,,,
+141.0,,,,,,,,,,
+142.0,,,,,,,,,,
+143.0,,,,,,,,,,
+144.0,,,,,,,,,,
+145.0,,,,,,,,,,
+146.0,,,,,,,,,,
+147.0,,,,,,,,,,
+148.0,,,,,,,,,,
+149.0,,,,,,,,,,
+150.0,,,,,,,,,,
+151.0,,,,,,,,,,
+152.0,,,,,,,,,,
+153.0,,,,,,,,,,
+154.0,,,,,,,,,,
+155.0,,,,,,,,,,
+156.0,,,,,,,,,,
+157.0,,,,,,,,,,
+158.0,,,,,,,,,,
+159.0,,,,,,,,,,
+160.0,,,,,,,,,,
+161.0,,,,,,,,,,
+162.0,,,,,,,,,,
+163.0,,,,,,,,,,
+164.0,,,,,,,,,,
+165.0,,,,,,,,,,
+166.0,,,,,,,,,,
+167.0,,,,,,,,,,
+168.0,,,,,,,,,,
+169.0,,,,,,,,,,
+170.0,,,,,,,,,,
+171.0,,,,,,,,,,
+172.0,,,,,,,,,,
+173.0,,,,,,,,,,
+174.0,,,,,,,,,,
+175.0,,,,,,,,,,
+176.0,,,,,,,,,,
+177.0,,,,,,,,,,
+178.0,,,,,,,,,,
+179.0,,,,,,,,,,
+180.0,,,,,,,,,,
+181.0,,,,,,,,,,
+182.0,,,,,,,,,,
+183.0,,,,,,,,,,
+184.0,,,,,,,,,,
+185.0,,,,,,,,,,
+186.0,,,,,,,,,,
+187.0,,,,,,,,,,
+188.0,,,,,,,,,,
+189.0,,,,,,,,,,
+190.0,,,,,,,,,,
+191.0,,,,,,,,,,
+192.0,,,,,,,,,,
+193.0,,,,,,,,,,
+194.0,,,,,,,,,,
+195.0,,,,,,,,,,
+196.0,,,,,,,,,,
+197.0,,,,,,,,,,
+198.0,,,,,,,,,,
+199.0,,,,,,,,,,
+200.0,,,,,,,,,,
+201.0,,,,,,,,,,
+202.0,,,,,,,,,,
+203.0,,,,,,,,,,
+204.0,,,,,,,,,,
+205.0,,,,,,,,,,
+206.0,,,,,,,,,,
+207.0,,,,,,,,,,
+208.0,,,,,,,,,,
+209.0,,,,,,,,,,
+210.0,,,,,,,,,,
+211.0,,,,,,,,,,
+212.0,,,,,,,,,,
+213.0,,,,,,,,,,
+214.0,,,,,,,,,,
+215.0,,,,,,,,,,
+216.0,,,,,,,,,,
+217.0,,,,,,,,,,
+218.0,,,,,,,,,,
+219.0,,,,,,,,,,
+220.0,,,,,,,,,,
+221.0,,,,,,,,,,
+222.0,,,,,,,,,,
+223.0,,,,,,,,,,
+224.0,,,,,,,,,,
+225.0,,,,,,,,,,
+226.0,,,,,,,,,,
+227.0,,,,,,,,,,
+228.0,,,,,,,,,,
+229.0,,,,,,,,,,
+230.0,,,,,,,,,,
+231.0,,,,,,,,,,
+232.0,,,,,,,,,,
+233.0,,,,,,,,,,
+234.0,,,,,,,,,,
+235.0,,,,,,,,,,
+236.0,,,,,,,,,,
+237.0,,,,,,,,,,
+238.0,,,,,,,,,,
+239.0,,,,,,,,,,
+240.0,,,,,,,,,,
+241.0,,,,,,,,,,
+242.0,,,,,,,,,,
+243.0,,,,,,,,,,
+244.0,,,,,,,,,,
+245.0,,,,,,,,,,
+246.0,,,,,,,,,,
+247.0,,,,,,,,,,
+248.0,,,,,,,,,,
+249.0,,,,,,,,,,
+250.0,,,,,,,,,,
+251.0,,,,,,,,,,
+252.0,,,,,,,,,,
+253.0,,,,,,,,,,
+254.0,,,,,,,,,,
+255.0,,,,,,,,,,
+256.0,,,,,,,,,,
+257.0,,,,,,,,,,
+258.0,,,,,,,,,,
+259.0,,,,,,,,,,
+260.0,,,,,,,,,,
+261.0,,,,,,,,,,
+262.0,,,,,,,,,,
+263.0,,,,,,,,,,
+264.0,,,,,,,,,,
+259.0,,,,,,,,,,
+266.0,,,,,,,,,,
+267.0,,,,,,,,,,
+268.0,,,,,,,,,,
+269.0,,,,,,,,,,
+270.0,,,,,,,,,,
+271.0,,,,,,,,,,
+259.0,,,,,,,,,,
+273.0,,,,,,,,,,
+218.0,,,,,,,,,,
+275.0,,,,,,,,,,
+276.0,,,,,,,,,,
+277.0,,,,,,,,,,
+278.0,,,,,,,,,,
+279.0,,,,,,,,,,
+280.0,,,,,,,,,,
+281.0,,,,,,,,,,
+282.0,,,,,,,,,,
+283.0,,,,,,,,,,
+284.0,,,,,,,,,,
+285.0,,,,,,,,,,
+286.0,,,,,,,,,,
+287.0,,,,,,,,,,
+288.0,,,,,,,,,,
+289.0,,,,,,,,,,
+290.0,,,,,,,,,,
+291.0,,,,,,,,,,
+292.0,,,,,,,,,,
+293.0,,,,,,,,,,
+294.0,,,,,,,,,,
+295.0,,,,,,,,,,
+296.0,,,,,,,,,,
+297.0,,,,,,,,,,
+298.0,,,,,,,,,,
+299.0,,,,,,,,,,
+300.0,,,,,,,,,,
+301.0,,,,,,,,,,
+302.0,,,,,,,,,,
+303.0,,,,,,,,,,
+304.0,,,,,,,,,,
+305.0,,,,,,,,,,
+306.0,,,,,,,,,,
+307.0,,,,,,,,,,
+308.0,,,,,,,,,,
+309.0,,,,,,,,,,
+310.0,,,,,,,,,,
+311.0,,,,,,,,,,
+312.0,,,,,,,,,,
+313.0,,,,,,,,,,
+314.0,,,,,,,,,,
+315.0,,,,,,,,,,
+316.0,,,,,,,,,,
+317.0,,,,,,,,,,
+318.0,,,,,,,,,,
+319.0,,,,,,,,,,
+320.0,,,,,,,,,,
+321.0,,,,,,,,,,
+322.0,,,,,,,,,,
+323.0,,,,,,,,,,
+324.0,,,,,,,,,,
+325.0,,,,,,,,,,
+326.0,,,,,,,,,,
+,,,,,,,,,,
+,,DATI COMMESSE,,,,,,,,
+,,Numero di Offerte,,182.0,,,,,,
+,,Numero di Sospese,,43.0,,,,,,
+,,Numero di Offerte con risposta,,139.0,,,,,,
+,,Numero di Commesse,,71.0,,,,,,
+,,Indice di Successo,,0.3901098901098901,,,,,,
+"
+Sede Legale: Via della Stazione di San Pietro 65 – 00165 Roma  -  Sede Amm.va: Via Einstein, 16 – 47025 Mercato Saraceno (FC)
+Tel.
+ +39 0547 373024  -  Fax. +39 0547 323119  -  mail: info@flashcontrol.it  -  PEC: info@pec.flashcontrol.it 
+P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
+`;
+
+        function parseCsvData(csvContent) {
+            // Remove citations
+            const cleanedCsvContent = csvContent.replace(/\/g, '').trim();
+            // Split by newline and filter out empty lines
+            const lines = cleanedCsvContent.split('\n').filter(line => line.trim() !== '');
+
+            if (lines.length < 2) return;
+
+            let headerLineIndex = -1;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                // Look for common headers to find the actual data header
+                if (line.includes('N° Offerta') && line.includes('Cliente') && line.includes('RIF.PRATICA')) {
+                    headerLineIndex = i;
+                    break;
+                }
             }
-        }
-        
-        async function createCloudConvertJob() {
-            const response = await fetch(`${CLOUDCONVERT_BASE_URL}/jobs`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${CLOUDCONVERT_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    tasks: {
-                        'upload-html': { // Task per l'upload
-                            operation: 'import/upload'
-                        },
-                        'convert-to-docx': { // Task per la conversione
-                            operation: 'convert',
-                            input: 'upload-html', // Dipende dal task di upload
-                            output_format: 'docx',
-                            options: {
-                                page_size: 'A4',
-                                margin_top: '2.5cm',
-                                margin_bottom: '2.5cm',
-                                margin_left: '2.5cm',
-                                margin_right: '2.5cm'
-                            }
-                        },
-                        'export-docx': { // Task per l'esportazione dell'URL
-                            operation: 'export/url',
-                            input: 'convert-to-docx' // Dipende dal task di conversione
-                        }
+
+            if (headerLineIndex === -1) {
+                console.error("CSV header not found or malformed.");
+                return;
+            }
+
+            const headers = lines[headerLineIndex].split(',').map(h => h.trim());
+            const dataLines = lines.slice(headerLineIndex + 1);
+
+            parsedCsvData = []; // Clear previous data
+            praticaDataMap = new Map();
+            uniqueClienti = new Set();
+
+            dataLines.forEach(line => {
+                const values = line.split(',');
+                if (values.length >= headers.length) {
+                    let row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] ? values[index].trim() : '';
+                    });
+                    
+                    // Validate essential fields to avoid processing summary rows or malformed rows
+                    if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '' && row['Cliente'] && row['Cliente'] !== '') {
+                        parsedCsvData.push(row);
+                        praticaDataMap.set(row['RIF.PRATICA'], row);
+                        uniqueClienti.add(row['Cliente']);
                     }
-                })
-            });
-            
-            if (!response.ok) {
-                const errorBody = await response.json();
-                throw new Error(`Errore creazione job: ${response.status} - ${errorBody.message || JSON.stringify(errorBody)}`);
-            }
-            
-            return await response.json();
-        }
-        
-        async function uploadHTMLToCloudConvert(taskId, htmlContent, fileName) {
-            const uploadResponse = await fetch(`${CLOUDCONVERT_BASE_URL}/tasks/${taskId}`, {
-                headers: {
-                    'Authorization': `Bearer ${CLOUDCONVERT_API_KEY}`
                 }
             });
-            
-            if (!uploadResponse.ok) {
-                const errorBody = await uploadResponse.json();
-                throw new Error(`Errore ottenimento URL upload: ${uploadResponse.status} - ${errorBody.message || JSON.stringify(errorBody)}`);
-            }
-            
-            const uploadData = await uploadResponse.json();
-            const uploadUrl = uploadData.data.result.form.url;
-            const formData = new FormData();
-            
-            Object.entries(uploadData.data.result.form.parameters).forEach(([key, value]) => {
-                formData.append(key, value);
-            });
-            
-            const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-            formData.append('file', htmlBlob, `${fileName}.html`);
-            
-            const uploadFileResponse = await fetch(uploadUrl, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!uploadFileResponse.ok) {
-                throw new Error(`Errore upload file: ${uploadFileResponse.status}`);
-            }
         }
-        
-        // Funzione per attendere e scaricare il risultato del task di esportazione
-        async function waitAndDownloadResult(exportTaskId, fileName) { // Riceve direttamente l'ID del task di export
-            let attempts = 0;
-            const maxAttempts = 60; // Max 4 minuti (60 * 4s)
-            
-            while (attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, 4000)); // Attendi 4 secondi
-                
-                // Interroga direttamente lo stato del task di export
-                const statusResponse = await fetch(`${CLOUDCONVERT_BASE_URL}/tasks/${exportTaskId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${CLOUDCONVERT_API_KEY}`
-                    }
+
+        function populateDropdowns() {
+            // Populate Codice Pratica dropdown
+            const codicePraticaSelect = document.getElementById('codicePraticaSelect');
+            if (codicePraticaSelect) {
+                codicePraticaSelect.innerHTML = ''; // Clear existing options
+                const tbaOption = document.createElement('option');
+                tbaOption.value = 'TBA';
+                tbaOption.textContent = 'TBA';
+                codicePraticaSelect.appendChild(tbaOption);
+
+                Array.from(praticaDataMap.keys()).sort().forEach(pratica => {
+                    const option = document.createElement('option');
+                    option.value = pratica;
+                    option.textContent = pratica;
+                    codicePraticaSelect.appendChild(option);
                 });
-                
-                if (!statusResponse.ok) {
-                    const errorBody = await statusResponse.json();
-                    throw new Error(`Errore controllo stato task export: ${statusResponse.status} - ${errorBody.message || JSON.stringify(errorBody)}`);
-                }
-                
-                const task = (await statusResponse.json()).data;
-                
-                if (task.status === 'finished') {
-                    if (task.result && task.result.files && task.result.files.length > 0) {
-                        const downloadUrl = task.result.files[0].url;
-                        const downloadResponse = await fetch(downloadUrl);
-                        
-                        if (!downloadResponse.ok) {
-                            throw new Error(`Errore download file: ${downloadResponse.status}`);
-                        }
-                        
-                        const blob = await downloadResponse.blob();
-                        
-                        // Crea link di download
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${fileName}.docx`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        
-                        showNotification('✅ Documento Word scaricato con successo!', 'success');
-                        return; // Esce dalla funzione
-                    } else {
-                        throw new Error('CloudConvert finished, but no download file found in task result.');
-                    }
-                } else if (task.status === 'error') {
-                    throw new Error(`Errore conversione: ${task.message || 'Errore sconosciuto'}`);
-                }
-                
-                attempts++;
-                showNotification(`🔄 Conversione in corso... (${Math.round((attempts/maxAttempts)*100)}%)`, 'info');
-            }
-            
-            throw new Error('Timeout: conversione CloudConvert troppo lunga.');
-        }
-        
-        function generateOptimizedWordHTML() {
-            const data = extractAllData();
-            
-            // Genera contenuto logo
-            let logoContent = '';
-            const logoImageElement = document.getElementById('logoImage');
-            const logoTextElement = document.getElementById('logoText');
-
-            if (logoImageElement && logoImageElement.style.display === 'block' && logoImageElement.src) {
-                logoContent = `<div style="text-align: center; margin-bottom: 20px;"><img src="${logoImageElement.src}" alt="Logo Aziendale" style="width: 240px; height: 160px; object-fit: contain;"></div>`; // MODIFICATO: Dimensioni raddoppiate
-            } else if (logoTextElement && logoTextElement.style.display === 'block') {
-                // Aggiunto il ripristino dei <br> per il logo testuale
-                logoContent = `<div style="font-family: Calibri, sans-serif; font-size: 16pt; font-weight: bold; text-align: center; color: #2c5aa0; margin-bottom: 10px;">${logoTextElement.innerHTML.trim()}</div>`;
             }
 
-            return `<!DOCTYPE html>
-<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="ProgId" content="Word.Document">
-    <title>Flash Control - Offerta Commerciale</title>
-    <style>
-        @page {
-            size: A4;
-            margin: 2.5cm;
+            // Populate Azienda dropdown
+            const aziendaSelect = document.getElementById('aziendaSelect');
+            if (aziendaSelect) {
+                aziendaSelect.innerHTML = ''; // Clear existing options
+                const emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = ''; // Empty option
+                aziendaSelect.appendChild(emptyOption);
+                
+                Array.from(uniqueClienti).sort().forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente;
+                    option.textContent = cliente;
+                    aziendaSelect.appendChild(option);
+                });
+            }
         }
-        body { 
-            font-family: Calibri, Arial, sans-serif; 
-            font-size: 11pt; 
-            line-height: 1.4; 
-            margin: 0;
-            padding: 0;
-        }
-        .header-section { 
-            text-align: center; 
-            margin-bottom: 30px; 
-            padding: 20px;
-            border: 2px solid #2c5aa0;
-            background: #f8fafc;
-        }
-        .company-name { 
-            font-size: 24pt; 
-            font-weight: bold; 
-            color: #2c5aa0; 
-            margin: 10px 0;
-        }
-        .offer-title { 
-            font-size: 18pt; 
-            font-weight: bold; 
-            margin: 10px 0;
-            text-transform: uppercase;
-        }
-        .document-info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        .document-info-table td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            font-size: 10pt;
-        }
-        .section-title { 
-            font-size: 14pt; 
-            font-weight: bold; 
-            color: #2c5aa0; 
-            margin: 25px 0 15px 0; 
-            border-bottom: 2px solid #2c5aa0;
-            padding-bottom: 5px;
-        }
-        .info-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin: 15px 0; 
-        }
-        .info-table td { 
-            padding: 10px; 
-            border: 1px solid #ddd; 
-            vertical-align: top; 
-        }
-        .label-cell { 
-            background: #f0f0f0; 
-            font-weight: bold; 
-            width: 25%; 
-        }
-        .offer-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin: 20px 0; 
-        }
-        .offer-table th { 
-            background: #2c5aa0; 
-            color: white; 
-            padding: 12px; 
-            text-align: center; 
-            font-weight: bold;
-        }
-        .offer-table td { 
-            padding: 10px; 
-            border: 1px solid #ddd; 
-            vertical-align: top; 
-        }
-        .section-header-cell { 
-            background: #e3f2fd !important; 
-            color: #1976d2 !important; 
-            font-weight: bold; 
-            text-align: center; 
-            padding: 15px !important; 
-            font-size: 12pt; 
-        }
-        .note-item { 
-            margin-bottom: 15px; 
-            padding: 10px; 
-            border-left: 4px solid #ffa726;
-            background: #fff8e1;
-        }
-        .responsibility-section {
-            margin: 25px 0;
-        }
-        .responsibility-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-        }
-        .responsibility-table td { 
-            padding: 15px; 
-            border: 1px solid #ddd; 
-            vertical-align: top; 
-        }
-        .resp-header { 
-            background: #2c5aa0; 
-            color: white; 
-            font-weight: bold; 
-            text-align: center; 
-            padding: 15px; 
-        }
-        .resp-list { 
-            list-style-type: disc; 
-            padding-left: 20px; 
-            margin: 0; 
-        }
-        .resp-list li { 
-            margin-bottom: 8px; 
-        }
-        .signature-section { 
-            border: 3px dashed #2c5aa0; 
-            padding: 40px; 
-            text-align: center; 
-            margin: 40px 0; 
-        }
-        .signature-line { 
-            border-bottom: 2px solid #000; 
-            width: 300px; 
-            margin: 20px auto; 
-            height: 50px; 
-        }
-        .footer-section { 
-            margin-top: 50px; 
-            padding-top: 20px; 
-            border-top: 3px solid #2c5aa0; 
-            font-size: 9pt; 
-            text-align: center; 
-        }
-        .footer-section div { 
-            margin: 5px 0; 
-        }
-    </style>
-</head>
-<body>
-    <div class="header-section">
-        ${logoContent}
-        <div class="company-name">FLASH CONTROL Srl</div>
-        <div class="offer-title">Offerta Commerciale</div>
-    </div>
-    
-    <div class="section-title">INFORMAZIONI DOCUMENTO</div>
-    <table class="document-info-table">
-        <tr>
-            <td class="label-cell"><strong>Numero Offerta:</strong></td>
-            <td>${data.documentInfo.offerNumber}</td>
-            <td class="label-cell"><strong>Data:</strong></td>
-            <td>${data.documentInfo.date}</td>
-        </tr>
-        <tr>
-            <td class="label-cell"><strong>Foglio:</strong></td>
-            <td>${data.documentInfo.sheet}</td>
-            <td class="label-cell"><strong>Validità:</strong></td>
-            <td>${data.documentInfo.validUntil}</td>
-        </tr>
-    </table>
-    
-    <div class="section-title">INFORMAZIONI CLIENTE</div>
-    <table class="info-table">
-        <tr><td class="label-cell">Azienda:</td><td>${data.client.company}</td></tr>
-        <tr><td class="label-cell">Referente:</td><td>${data.client.contact}</td></tr>
-        <tr><td class="label-cell">Email:</td><td>${data.client.email}</td></tr>
-        <tr><td class="label-cell">Telefono:</td><td>${data.client.phone}</td></tr>
-    </table>
 
-    <div class="section-title">RIFERIMENTI PROGETTO</div>
-    <table class="info-table">
-        <tr><td class="label-cell">Vs. Rif.:</td><td>${data.reference.yourRef}</td></tr>
-        <tr><td class="label-cell">Oggetto:</td><td>${data.reference.object}</td></tr>
-        <tr><td class="label-cell">Località:</td><td>${data.reference.location}</td></tr>
-        <tr><td class="label-cell">Tempistiche:</td><td>${data.reference.timeline}</td></tr>
-    </table>
+        function handleCodicePraticaChange() {
+            const codicePraticaSelect = document.getElementById('codicePraticaSelect');
+            const selectedPratica = codicePraticaSelect ? codicePraticaSelect.value : '';
 
-    <div class="section-title">CONDIZIONI COMMERCIALI</div>
-    <table class="info-table">
-        <tr><td class="label-cell">VALIDITÀ PREVENTIVO:</td><td>${data.conditions.validity}</td></tr>
-        <tr><td class="label-cell">MODALITÀ PAGAMENTO:</td><td>${data.conditions.payment}</td></tr>
-        <tr><td class="label-cell">TERMINI CONSEGNA:</td><td>${data.conditions.delivery}</td></tr>
-        <tr><td class="label-cell">VALUTA:</td><td>${data.conditions.currency}</td></tr>
-    </table>
-    
-    <div class="section-title">DETTAGLIO OFFERTA</div>
-    <table class="offer-table">
-        <thead>
-            <tr>
-                <th style="width:8%">POS.</th>
-                <th style="width:52%">DESCRIZIONE DETTAGLIATA</th>
-                <th style="width:10%">QTÀ</th>
-                <th style="width:15%">PREZZO UNITARIO</th>
-                <th style="width:15%">TOTALE</th>
-            </tr>
-        </thead>
-        <tbody>
-        ${data.items.map(item => {
-            if (item.isSectionHeader) {
-                return `<tr><td colspan="5" class="section-header-cell">${item.description}</td></tr>`;
-            } else if (item.isTotalRow) {
-                return `
-                    <tr>
-                        <td colspan="4" style="text-align: right; background: #4caf50; color: white; padding: 15px; font-weight: bold;">
-                            TOTALE COMPLESSIVO:
-                        </td>
-                        <td style="text-align: right; background: #e8f5e8; padding: 15px; font-weight: bold;">
-                            ${item.total}
-                        </td>
-                    </tr>
-                `;
+            const numeroCommessaElement = document.getElementById('numeroCommessa');
+            const aziendaSelect = document.getElementById('aziendaSelect'); 
+
+            if (selectedPratica === 'TBA') {
+                if (numeroCommessaElement) numeroCommessaElement.textContent = '';
+                if (aziendaSelect) aziendaSelect.value = ''; // Reset azienda dropdown
+                return;
+            }
+
+            const rowData = praticaDataMap.get(selectedPratica);
+
+            if (rowData) {
+                if (numeroCommessaElement) {
+                    numeroCommessaElement.textContent = rowData['N° di Commessa'] || '';
+                }
+                if (aziendaSelect && rowData['Cliente']) {
+                    aziendaSelect.value = rowData['Cliente']; 
+                }
             } else {
-                return `
-                    <tr>
-                        <td style="text-align:center">${item.position}</td>
-                        <td>${item.description}</td>
-                        <td style="text-align:center">${item.quantity}</td>
-                        <td style="text-align:right">${item.unitPrice}</td>
-                        <td style="text-align:right">${item.total}</td>
-                    </tr>
-                `;
+                // Clear if no data found for selected pratica
+                if (numeroCommessaElement) numeroCommessaElement.textContent = '';
+                if (aziendaSelect) aziendaSelect.value = '';
             }
-        }).join('')}
-        </tbody>
-    </table>
+        }
 
-    <div class="section-title">NOTE IMPORTANTI E CONDIZIONI SPECIALI</div>
-    ${data.notes.map((note, index) => `
-        <div class="note-item">
-            <strong>NOTA ${index + 1}: ${note.category}</strong><br>
-            ${note.content}
-        </div>
-    `).join('')}
-
-    <div class="section-title">RESPONSABILITÀ DELLE PARTI</div>
-    <div class="responsibility-section">
-        <table class="responsibility-table">
-            <tr>
-                <td class="resp-header" style="width: 50%;">OBBLIGHI FLASH CONTROL SRL</td>
-                <td class="resp-header" style="width: 50%;">RESPONSABILITÀ CLIENTE</td>
-            </tr>
-            <tr>
-                <td style="vertical-align: top;">
-                    <ul class="resp-list">
-                        ${data.responsibilities.flash.map(resp => `<li><strong>${resp.title}:</strong> ${resp.content}</li>`).join('')}
-                    </ul>
-                </td>
-                <td style="vertical-align: top;">
-                    <ul class="resp-list">
-                        ${data.responsibilities.client.map(resp => `<li><strong>${resp.title}:</strong> ${resp.content}</li>`).join('')}
-                    </ul>
-                </td>
-            </tr>
-        </table>
-    </div>
-    
-    <div class="section-title">APPROVAZIONE E ACCETTAZIONE CLIENTE</div>
-    <div class="signature-section">
-        <p>Con la firma del presente preventivo, il Cliente accetta integralmente le condizioni specificate, i termini di pagamento e le responsabilità indicate.</p>
-        <div class="signature-line"></div>
-        <div style="margin-top: 15px; font-weight: bold;">Firma del Cliente e Timbro Aziendale</div>
-        <div style="margin-top: 30px; font-size: 10pt;">
-            Data: _________________ &nbsp;&nbsp;&nbsp; Luogo: _________________
-        </div>
-    </div>
-
-    <div class="footer-section">
-        <div><strong>Sede Legale:</strong> ${data.footer.address}</div>
-        <div><strong>Telefono:</strong> ${data.footer.phoneAndFax.split('-')[0]?.trim() || ''} - <strong>Fax:</strong> ${data.footer.phoneAndFax.split('-')[1]?.trim() || ''}</div>
-        <div><strong>Email:</strong> ${data.footer.emailAndWeb.split('PEC:')[0]?.trim() || ''} <strong>PEC:</strong> ${data.footer.emailAndWeb.split('PEC:')[1]?.trim() || ''}</div>
-        <div><strong>P.IVA:</strong> ${data.footer.vatAndCf.split('-')[0]?.replace('P.IVA:', '').trim() || ''} - <strong>C.F.:</strong> ${data.footer.vatAndCf.split('-')[1]?.replace('C.F.:', '').trim() || ''}</div>
-        <div style="margin-top: 15px; font-size: 8pt; color: #888;">
-            Documento generato dal Sistema Flash Control v2.1 - © 2024 Flash Control S.r.l.
-        </div>
-    </div>
-</body>
-</html>`;
+        function handleAziendaChange() {
+            // This function can be left empty or trigger other logic if needed.
+            // For now, it's primarily driven by Codice Pratica change.
         }
         
         // ================================
         // FUNZIONI PDF CORRETTE - SENZA SOVRAPPOSIZIONI
         // ================================
         
-function generatePDF() {
-    showNotification('Generazione PDF in corso...', 'info');
-    
-    try {
-        const originalTitle = document.title;
-        const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
-        const currentDate = new Date().toISOString().split('T')[0];
-        
-        document.title = `FlashControl_${offerNumber}_${currentDate}`;
-        
-        // Nascondi elementi non necessari per la stampa
-        const elementsToHide = document.querySelectorAll('.controls, .delete-btn, .notification, .add-resp-btn');
-        elementsToHide.forEach(el => el.style.display = 'none');
-        
-        // Avvia stampa
-        setTimeout(() => {
-            window.print(); // Questa è la riga chiave
+        function generatePDF() {
+            showNotification('Generazione PDF in corso...', 'info');
             
-            // Ripristina elementi dopo stampa
-            setTimeout(() => {
-                elementsToHide.forEach(el => el.style.display = '');
-                document.title = originalTitle;
-                showNotification('✅ PDF generato con successo!', 'success');
-            }, 1000);
-        }, 500);
-        
-    } catch (error) {
-        console.error('Errore generazione PDF:', error);
-        showNotification('❌ Errore nella generazione PDF', 'error');
-    }
-}
+            try {
+                const originalTitle = document.title;
+                // Modified to get value from select
+                const offerNumber = document.getElementById('codicePraticaSelect')?.value || 'OFFER'; 
+                const currentDate = new Date().toISOString().split('T')[0];
+                
+                document.title = `FlashControl_${offerNumber}_${currentDate}`;
+                
+                // Nascondi elementi non necessari per la stampa
+                const elementsToHide = document.querySelectorAll('.controls, .delete-btn, .notification, .add-resp-btn');
+                elementsToHide.forEach(el => el.style.display = 'none');
+                
+                // Avvia stampa
+                setTimeout(() => {
+                    window.print(); // Questa è la riga chiave
+                    
+                    // Ripristina elementi dopo stampa
+                    setTimeout(() => {
+                        elementsToHide.forEach(el => el.style.display = '');
+                        document.title = originalTitle;
+                        showNotification('✅ PDF generato con successo!', 'success');
+                    }, 1000);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Errore generazione PDF:', error);
+                showNotification('❌ Errore nella generazione PDF', 'error');
+            }
+        }
         
         function browserPrint() {
             showNotification('Finestra di stampa aperta', 'info');
@@ -1782,7 +1797,8 @@ function generatePDF() {
                 const offerData = extractAllData();
                 const jsonString = JSON.stringify(offerData, null, 2);
                 
-                const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
+                // Modified to get value from select
+                const offerNumber = document.getElementById('codicePraticaSelect')?.value || 'OFFER'; 
                 const currentDate = new Date().toISOString().split('T')[0];
                 const fileName = `FlashControl_${offerNumber}_${currentDate}.json`;
 
@@ -1836,7 +1852,7 @@ function generatePDF() {
         // GESTIONE TABELLA
         // ================================
         
-        function renumberTableRows() { /* NEW: Funzione per rinumerare le righe */
+        function renumberTableRows() { 
             let currentPos = 0;
             const rows = document.querySelectorAll('#quotationTableBody tr');
             rows.forEach(row => {
@@ -1844,7 +1860,7 @@ function generatePDF() {
                 if (row.querySelector('.section-header-cell') || row.querySelector('td[colspan="4"]')) {
                     // Se è un'intestazione o un totale, non numerarla e resetta il contatore se è una sezione
                     if (row.querySelector('.section-header-cell')) {
-                        currentPos = 0; // Reset della numerazione per la nuova sezione
+                        currentPos = 0; 
                     }
                     return; 
                 }
@@ -1855,7 +1871,7 @@ function generatePDF() {
                     posCell.textContent = currentPos;
                 }
             });
-            rowCounter = currentPos; /* Aggiorna rowCounter al numero finale */
+            rowCounter = currentPos; 
         }
 
         function addTableRow() {
@@ -1880,7 +1896,7 @@ function generatePDF() {
                 `;
                 
                 tbody.appendChild(newRow);
-                renumberTableRows(); /* MODIFIED: Chiama per aggiornare la numerazione */
+                renumberTableRows(); 
                 showNotification('✅ Nuova riga aggiunta alla tabella', 'success');
                 
             } catch (error) {
@@ -1892,7 +1908,7 @@ function generatePDF() {
         function deleteRow(button) {
             if (confirm('🗑️ Eliminare questa riga?')) {
                 button.closest('tr').remove();
-                renumberTableRows(); /* MODIFIED: Chiama per aggiornare la numerazione */
+                renumberTableRows(); 
                 showNotification('🗑️ Riga eliminata', 'info');
             }
         }
@@ -2053,7 +2069,8 @@ function generatePDF() {
             try {
                 const htmlContent = generateOptimizedWordHTML(); // Riutilizza la funzione che genera HTML pulito
                 
-                const offerNumber = getEditableValue('.document-info .editable', 0) || 'OFFER';
+                // Modified to get value from select
+                const offerNumber = document.getElementById('codicePraticaSelect')?.value || 'OFFER'; 
                 const currentDate = new Date().toISOString().split('T')[0];
                 const fileName = `FlashControl_Offerta_${offerNumber}_${currentDate}.html`;
 
@@ -2141,8 +2158,9 @@ function generatePDF() {
         }
         
         function generateOfferName() {
-            const client = getEditableValue('.client-section .editable', 0) || 'CLIENT';
-            const offer = getEditableValue('.document-info .editable', 0) || 'OFFER';
+            // Modified to get value from select
+            const client = document.getElementById('aziendaSelect')?.value || 'CLIENT';
+            const offer = document.getElementById('codicePraticaSelect')?.value || 'OFFER'; 
             const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
             return `${offer}_${client.substring(0, 10)}_${date}`.replace(/[^a-zA-Z0-9_]/g, '_');
         }
@@ -2153,16 +2171,17 @@ function generatePDF() {
             
             return {
                 documentInfo: {
-                    offerNumber: getEditableValue('.document-info .editable', 0),
-                    date: getEditableValue('.document-info .editable', 1),
-                    sheet: getEditableValue('.document-info .editable', 2),
-                    validUntil: getEditableValue('.document-info .editable', 3)
+                    offerNumber: document.getElementById('codicePraticaSelect')?.value || '', // Get from select
+                    date: getEditableValue('.document-info .editable', 1), // Index shifted
+                    // sheet: Removed
+                    numeroCommessa: document.getElementById('numeroCommessa')?.textContent.trim() || '', // New field
+                    validUntil: getEditableValue('.document-info .editable', 2) // Index shifted
                 },
                 logoImage: logoImage.style.display === 'block' ? logoImage.src : null,
                 logoText: logoText.style.display === 'block' ? logoText.textContent.trim() : null,
                 tagline: document.querySelector('.tagline').innerHTML,
                 client: {
-                    company: getEditableValue('.client-section .editable', 0),
+                    company: document.getElementById('aziendaSelect')?.value || '', // Get from select
                     contact: getEditableValue('.client-section .editable', 1),
                     email: getEditableValue('.client-section .editable', 2),
                     phone: getEditableValue('.client-section .editable', 3)
@@ -2170,9 +2189,9 @@ function generatePDF() {
                 reference: {
                     yourRef: getEditableValue('.reference-section .editable', 0),
                     object: getEditableValue('.reference-section .editable', 1),
-                    description: getEditableValue('.reference-section .editable', 2), /* NEW: per il nuovo campo */
-                    location: getEditableValue('.reference-section .editable', 3), /* MODIFIED: indice aggiornato */
-                    timeline: getEditableValue('.reference-section .editable', 4)  /* MODIFIED: indice aggiornato */
+                    description: getEditableValue('.reference-section .editable', 2), 
+                    location: getEditableValue('.reference-section .editable', 3), 
+                    timeline: getEditableValue('.reference-section .editable', 4)  
                 },
                 conditions: {
                     validity: getEditableValue('.conditions-section .editable', 0),
@@ -2277,10 +2296,21 @@ function generatePDF() {
         function applyAllData(data) {
             try {
                 if (data.documentInfo) {
-                    setEditableValue('.document-info .editable', 0, data.documentInfo.offerNumber);
-                    setEditableValue('.document-info .editable', 1, data.documentInfo.date);
-                    setEditableValue('.document-info .editable', 2, data.documentInfo.sheet);
-                    setEditableValue('.document-info .editable', 3, data.documentInfo.validUntil);
+                    const codicePraticaSelect = document.getElementById('codicePraticaSelect');
+                    if (codicePraticaSelect && data.documentInfo.offerNumber) {
+                        codicePraticaSelect.value = data.documentInfo.offerNumber;
+                        // No need to call handleCodicePraticaChange here directly, as it might lead to loops.
+                        // The initial population on load will ensure it's set.
+                    }
+                    setEditableValue('.document-info .editable', 0, data.documentInfo.date); // Index shifted due to removed sheet and added numeroCommessa
+                    setEditableValue('.document-info .editable', 1, data.documentInfo.validUntil); // Index shifted
+                    
+                    const numeroCommessaElement = document.getElementById('numeroCommessa');
+                    if (numeroCommessaElement && data.documentInfo.numeroCommessa) {
+                        numeroCommessaElement.textContent = data.documentInfo.numeroCommessa;
+                    } else if (numeroCommessaElement) { // Clear if no data
+                        numeroCommessaElement.textContent = '';
+                    }
                 }
                 
                 if (data.tagline) {
@@ -2304,7 +2334,12 @@ function generatePDF() {
                 }
 
                 if (data.client) {
-                    setEditableValue('.client-section .editable', 0, data.client.company);
+                    const aziendaSelect = document.getElementById('aziendaSelect');
+                    if (aziendaSelect && data.client.company) {
+                        aziendaSelect.value = data.client.company;
+                    } else if (aziendaSelect) { // Clear if no data
+                        aziendaSelect.value = '';
+                    }
                     setEditableValue('.client-section .editable', 1, data.client.contact);
                     setEditableValue('.client-section .editable', 2, data.client.email);
                     setEditableValue('.client-section .editable', 3, data.client.phone);
@@ -2313,9 +2348,9 @@ function generatePDF() {
                 if (data.reference) {
                     setEditableValue('.reference-section .editable', 0, data.reference.yourRef);
                     setEditableValue('.reference-section .editable', 1, data.reference.object);
-                    setEditableValue('.reference-section .editable', 2, data.reference.description); /* NEW: per il nuovo campo */
-                    setEditableValue('.reference-section .editable', 3, data.reference.location); /* MODIFIED: indice aggiornato */
-                    setEditableValue('.reference-section .editable', 4, data.reference.timeline);  /* MODIFIED: indice aggiornato */
+                    setEditableValue('.reference-section .editable', 2, data.reference.description); 
+                    setEditableValue('.reference-section .editable', 3, data.reference.location); 
+                    setEditableValue('.reference-section .editable', 4, data.reference.timeline);  
                 }
                 
                 if (data.conditions) {
@@ -2349,7 +2384,7 @@ function generatePDF() {
                     }
                 }
 
-                renumberTableRows(); /* MODIFIED: Chiama per rinumerare dopo aver applicato i dati */
+                renumberTableRows(); 
                 
             } catch (error) {
                 console.error('Errore applicazione dati:', error);
@@ -2359,96 +2394,92 @@ function generatePDF() {
         
         function setEditableValue(selector, index, value) {
             const elements = document.querySelectorAll(selector);
-            if (elements[index] && value) {
-                elements[index].textContent = value;
+            if (elements[index]) { // Check for existence
+                if (elements[index].tagName === 'SELECT') { // Handle select elements
+                    elements[index].value = value;
+                } else { // Handle contenteditable divs
+                    elements[index].textContent = value;
+                }
             }
         }
         
-        function applyTableItems(items) {
-            const tbody = document.getElementById('quotationTableBody');
-            tbody.innerHTML = '';
+        function extractTableItems() {
+            const items = [];
+            const rows = document.querySelectorAll('#quotationTableBody tr');
+            let currentPos = 0;
 
-            items.forEach((item) => {
-                if (item.isSectionHeader) {
-                    const defaultHeader = document.createElement('tr');
-                    defaultHeader.innerHTML = `
-                        <td colspan="5" class="section-header-cell">
-                            <div class="editable" contenteditable="true">${escapeHtml(item.description)}</div>
-                        </td>
-                    `;
-                    tbody.appendChild(defaultHeader);
-                } else if (item.isTotalRow) {
-                    const totalRow = document.createElement('tr');
-                    totalRow.style.backgroundColor = '#e8f5e8';
-                    totalRow.style.fontWeight = 'bold';
-                    totalRow.innerHTML = `
-                        <td colspan="4" style="text-align: right; background: #4caf50; color: white; padding: 15px;">
-                            TOTALE COMPLESSIVO:
-                        </td>
-                        <td style="text-align: right; background: #e8f5e8; padding: 15px;">
-                            ${escapeHtml(item.total)}
-                        </td>
-                    `;
-                    tbody.appendChild(totalRow);
-                } else {
-                    const newRow = document.createElement('tr');
-                    newRow.innerHTML = `
-                        <td>${item.position}</td>
-                        <td>
-                            <div class="editable" contenteditable="true">${escapeHtml(item.description)}</div>
-                        </td>
-                        <td>
-                            <div class="editable" contenteditable="true">${escapeHtml(item.quantity)}</div>
-                        </td>
-                        <td>
-                            <div class="editable" contenteditable="true">${escapeHtml(item.unitPrice)}</div>
-                            <button class="delete-btn" onclick="deleteRow(this)">✕</button>
-                        </td>
-                        <td>
-                            <div class="editable" contenteditable="true">${escapeHtml(item.total)}</div>
-                        </td>
-                    `;
-                    tbody.appendChild(newRow);
+            rows.forEach(row => {
+                const sectionHeaderCell = row.querySelector('.section-header-cell');
+                const totalRowCell = row.querySelector('td[colspan="4"]');
+
+                if (sectionHeaderCell) {
+                    items.push({
+                        isSectionHeader: true,
+                        description: sectionHeaderCell.querySelector('.editable')?.textContent.trim() || ''
+                    });
+                    currentPos = 0;
+                } else if (totalRowCell) {
+                     items.push({
+                        isTotalRow: true,
+                        total: totalRowCell.nextElementSibling.textContent.trim()
+                    });
+                }
+                else {
+                    const cells = row.children;
+                    if (cells.length >= 5) {
+                        currentPos++;
+                        const description = cells[1].querySelector('.editable')?.textContent.trim() || '';
+                        const quantity = cells[2].querySelector('.editable')?.textContent.trim() || '';
+                        const unitPrice = cells[3].querySelector('.editable')?.textContent.trim() || '';
+                        const total = cells[4].querySelector('.editable')?.textContent.trim() || '';
+                        
+                        if (description) {
+                            items.push({ position: currentPos, description, quantity, unitPrice, total });
+                        }
+                    }
                 }
             });
-        }
-        
-        function applyNotes(notes) {
-            const container = document.getElementById('notesContainer');
-            container.innerHTML = '';
             
-            notes.forEach(note => {
-                const newNote = document.createElement('div');
-                newNote.className = 'note-item';
-                newNote.innerHTML = `
-                    <strong>${escapeHtml(note.category)}:</strong>
-                    <div class="editable" contenteditable="true">${escapeHtml(note.content)}</div>
-                    <button class="delete-btn" onclick="deleteNote(this)">✕</button>
-                `;
-                container.appendChild(newNote);
-            });
+            return items;
         }
         
-        function applyResponsibilities(containerId, responsibilities, itemClass) {
+        function extractNotes() {
+            const notes = [];
+            const noteElements = document.querySelectorAll('.note-item');
+            
+            noteElements.forEach(noteEl => {
+                const strongEl = noteEl.querySelector('strong');
+                const editableEl = noteEl.querySelector('.editable');
+                
+                if (strongEl && editableEl) {
+                    notes.push({
+                        category: strongEl.textContent.trim(),
+                        content: editableEl.textContent.trim()
+                    });
+                }
+            });
+            
+            return notes;
+        }
+        
+        function extractResponsibilities(containerId) {
+            const responsibilities = [];
             const container = document.querySelector(containerId);
-            container.innerHTML = '';
+            const items = container ? container.querySelectorAll('.resp-item') : [];
             
-            responsibilities.forEach(resp => {
-                const newResp = document.createElement('div');
-                newResp.className = `resp-item ${itemClass}`;
-                newResp.innerHTML = `
-                    <strong>${escapeHtml(resp.title)}:</strong>
-                    <div class="editable" contenteditable="true">${escapeHtml(resp.content)}</div>
-                    <button class="delete-btn" onclick="deleteResponsibilityItem(this)">✕</button>
-                `;
-                container.appendChild(newResp);
+            items.forEach(item => {
+                const strongEl = item.querySelector('strong');
+                const editableEl = item.querySelector('.editable');
+                
+                if (strongEl && editableEl) {
+                    responsibilities.push({
+                        title: strongEl.textContent.trim().replace(':', ''),
+                        content: editableEl.textContent.trim()
+                    });
+                }
             });
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text || '';
-            return div.innerHTML;
+            
+            return responsibilities;
         }
         
         function showNotification(message, type = 'info') {
@@ -2468,6 +2499,9 @@ function generatePDF() {
         function initializeSystem() {
             console.log('🚀 Flash Control v2.1 con CloudConvert - Sistema Inizializzato');
             
+            parseCsvData(csvContent); // Parse CSV data on load
+            populateDropdowns(); // Populate dropdowns after parsing
+
             const savedTagline = localStorage.getItem('flashcontrol_tagline');
             if (savedTagline) {
                 document.querySelector('.tagline').innerHTML = savedTagline;
@@ -2483,7 +2517,7 @@ function generatePDF() {
                 logoText.style.display = 'none';
             }
             
-            renumberTableRows(); /* MODIFIED: Chiama per rinumerare le righe all'avvio */
+            renumberTableRows(); 
             showNotification('⚡ Sistema Flash Control con CloudConvert pronto!', 'success');
         }
         
