@@ -1537,12 +1537,13 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
 `;
 
         function parseCsvData(csvContent) {
-            // Remove citations
+            // Remove citations and trim leading/trailing whitespace from overall content
             const cleanedCsvContent = csvContent.replace(/\/g, '').trim();
             // Split by newline.
             let lines = cleanedCsvContent.split('\n');
 
             let headerLineIndex = -1;
+            let headers = [];
             let clienteIndex = -1;
             let praticaIndex = -1;
             let commessaIndex = -1;
@@ -1552,7 +1553,8 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                 // Look for common headers to find the actual data header
                 if (line.includes('N° Offerta') && line.includes('Cliente') && line.includes('RIF.PRATICA')) {
                     headerLineIndex = i;
-                    const headers = line.split(',').map(h => h.trim());
+                    // Split headers by semicolon, as indicated by file metadata
+                    headers = line.split(';').map(h => h.trim()); 
                     clienteIndex = headers.indexOf('Cliente');
                     praticaIndex = headers.indexOf('RIF.PRATICA');
                     commessaIndex = headers.indexOf('N° di Commessa');
@@ -1584,7 +1586,8 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                     return;
                 }
 
-                const values = line.split(',');
+                // Split line by semicolon, consistent with header parsing
+                const values = line.split(';'); 
 
                 // Attempt to extract RIF.PRATICA from its known position for heuristic
                 const praticaCandidate = values[praticaIndex] ? values[praticaIndex].trim() : '';
@@ -1593,13 +1596,14 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                 if (isNewRecord) {
                     // This is a new record line
                     let row = {};
-                    // Populate row using found indices
+                    // Populate row using found indices from the 'values' array
+                    // Ensure to handle cases where 'values' array might not have all indices
                     row['N° Offerta'] = values[headers.indexOf('N° Offerta')] ? values[headers.indexOf('N° Offerta')].trim() : '';
                     row['Data Offerta'] = values[headers.indexOf('Data Offerta')] ? values[headers.indexOf('Data Offerta')].trim() : '';
-                    row['Cliente'] = cliente; // Use pre-extracted value
-                    row['RIF.PRATICA'] = pratica; // Use pre-extracted value
+                    row['Cliente'] = values[clienteIndex] ? values[clienteIndex].trim() : '';
+                    row['RIF.PRATICA'] = values[praticaIndex] ? values[praticaIndex].trim() : '';
                     row['Esito Ordine'] = values[headers.indexOf('Esito Ordine')] ? values[headers.indexOf('Esito Ordine')].trim() : '';
-                    row['N° di Commessa'] = commessa; // Use pre-extracted value
+                    row['N° di Commessa'] = values[commessaIndex] ? values[commessaIndex].trim() : '';
                     row['n° Ordine'] = values[headers.indexOf('n° Ordine')] ? values[headers.indexOf('n° Ordine')].trim() : '';
                     row['Descrizione lavoro'] = values[headers.indexOf('Descrizione lavoro')] ? values[headers.indexOf('Descrizione lavoro')].trim() : '';
                     row['Luogo di lavoro'] = values[headers.indexOf('Luogo di lavoro')] ? values[headers.indexOf('Luogo di lavoro')].trim() : '';
@@ -1609,7 +1613,9 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                     if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '' && row['Cliente'] && row['Cliente'] !== '') {
                         parsedCsvData.push(row);
                         praticaDataMap.set(row['RIF.PRATICA'], row);
-                        uniqueClienti.add(row['Cliente']);
+                        if (row['Cliente']) { // Ensure client exists before adding
+                           uniqueClienti.add(row['Cliente']);
+                        }
                         currentDataRow = row; // Set this as the current record being built
                     } else {
                         currentDataRow = null; // Invalid new record (e.g., missing RIF.PRATICA or Cliente), discard
@@ -2242,7 +2248,8 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                 },
                 logoImage: logoImage.style.display === 'block' ? logoImage.src : null,
                 logoText: logoText.style.display === 'block' ? logoText.textContent.trim() : null,
-                    // Modified to get value from select
+                tagline: document.querySelector('.tagline').innerHTML,
+                client: {
                     company: document.getElementById('aziendaSelect')?.value || '', 
                     contact: getEditableValue('.client-section .editable', 1),
                     email: getEditableValue('.client-section .editable', 2),
