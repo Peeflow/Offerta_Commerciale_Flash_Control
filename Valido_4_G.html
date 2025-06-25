@@ -259,7 +259,7 @@
             font-size: 16px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            box-shadow: inset 0 -2px 0 rgba(255,255,255,0.2);
+            box-shadow: inset 0 -2px 0 rgba(255,255,0,0.2);
         }
         
         .quotation-table td {
@@ -1158,7 +1158,7 @@
         // ATTENZIONE: Questa API Key è ESPOSTA nel frontend.
         // Per un'applicazione in produzione, considera di usare un backend
         // per gestire le chiamate a CloudConvert in modo sicuro.
-        const CLOUDCONVERT_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMjc0ZDA4ZmY0NGRiOThhMjY1OWNhZGY5ZmIxNWRlNDM3ZDZiY2U2MzdhMGRjYTk4OTAzZWZhNWMxNDQ3YzNmM2RiMmIwMDg0OGIwM2Y0NDEiLCJpYXQiOjE3NTA2Njc5NTQuMjQ3ODg0LCJuYmYiOjE3NTA2Njc5NTQuMjQ3ODg1LCJleHAiOjQ5MDYzNDE1NTQuMjQwNjM2LCJzdWIiOiI3MjI2Mjc1NiIsInNjb3BlcyI6WyJ1c2VyLnJlYWQiLCJ1c2VyLndyaXRlIiwidGFzay5yZWFkIiwidGFzay53cml0ZSIsIndlYmhvb2sucmVhZCIsIndlYmhvb2sud3JpdGUiLCJwcmVzZXQucmVhZCIsInByZXNldC53cml0ZSJdfQ.k86uj1C5YPF8Kas4ep3tIG7r0Rl0wmh-oojqNp1HN8UsD5G2gcJ1NTueRapmjsXPm3QTTmg49eaSWbZazFRI97oK3tPI80HslFgvK_jYmvSzvC0W1fZoMlpoHmQJi7Unesnyh4t2irKIu2BxYvNyx3rmSHYbv80cm1ZGaqLsg45q86uVDOkW_OmhacEWEX3rAlW8YS8P3I6kTTF59rbY8LSGs5ACB1qy8Nwm2CX2a6e9jqXJZchDqaAwr4sGRPtnGgkgceW_W3v0-Y6v4c9YOgeWhyN9i2bn7E0tfvR9lxML8x-CYJ8ANloiE_yXXSPs25Fn2F9JlgQUR3P-pPJ79H-oWBZ1XlxJwLMgmda5Qqi_T72xsfo6ThnQVJQLNoqatVw6J33soRbrhDyCW6aYR1g-1t2Y5K4pdt4Evppws0aU7VRgn5cEQN20YotAGMZnOXN3IrAqWbCUCUHblnQ7_MGmE3Q9vM1VL7dNvrM2zT1jnp0irpwZy_WFsimqaPpRfMlAGaUNK0MhWFGQiiHFWBRxPchPfL_HnH3Xzn8Qg2QJ4A_aVIUW4-mH4hGmERFt10HjQ0wda51XS-yTn9vlE01pZylOPYixFtNdoM9ASfziseYT4ITZK4EMe7dSaaMJAPl5NICHs8zx1qOkglRgwREWeti_XtVHZ4FocMKCMaQ';
+        const CLOUDCONVERT_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMjc0ZDA4ZmY0NGRiOThhMjY1OWNhZGY5ZmIxNWRlNDM3ZDZiY2U2MzdhMGRjYTk4OTAzZWZhNWMxNDQ3YzNmM2RiMmIwMDg0OGIwM2Y0NDEiLCJpYXQiOjE3NTA2Njc5NTQuMjQ3ODg0LCJuYmYiOjE3NTA2Njc5NTQuMjQ0NjM2LCJleHAiOjQ5MDYzNDE1NTQuMjQwNjM2LCJzdWIiOiI3MjI2Mjc1NiIsInNjb3BlcyI6WyJ1c2VyLnJlYWQiLCJ1c2VyLndyaXRlIiwidGFzay5yZWFkIiwidGFzay53cml0ZSIsIndlYmhvb2sucmVhZCIsIndlYmhvb2sud3JpdGUiLCJwcmVzZXQucmVhZCIsInByZXNldC53cml0ZSJdfQ.j-2sD_1H2_M-T_m2X2o5Q8F4L-wR1G5B3A7x9J5Y7Y8Q9F4J7Q6W2H3E7R1B3M1A9K8L6O5P4N3I2H1G5F4E3D2C1B0A'; // Example placeholder
         const CLOUDCONVERT_BASE_URL = 'https://cloudconvert.com';
         
         let rowCounter = 3; /* Questa variabile verrà aggiornata dalla funzione renumberTableRows */
@@ -1564,54 +1564,52 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
             praticaDataMap = new Map();
             uniqueClienti = new Set();
 
-            let currentDataRow = null;
+            let currentDataRow = null; // Holds the row object currently being built
 
             dataLinesRaw.forEach(line => {
                 line = line.trim();
                 if (line === '') return; // Skip truly empty lines
 
-                // Heuristic: If a line starts with a number followed by .0, it's likely a new record.
-                // Otherwise, it might be a continuation of the 'Note' field of the previous record.
-                const startsNewRecord = /^\d+\.0,/.test(line); // Checks for "1.0," "2.0," etc.
                 const isFooterOrSummary = line.includes('Sede Legale:') || line.includes('DATI COMMESSE');
-
                 if (isFooterOrSummary) {
                     currentDataRow = null; // Stop processing data rows
                     return;
                 }
 
-                if (startsNewRecord) {
-                    // New record starts
-                    const values = line.split(',');
-                    if (values.length >= headers.length) {
-                        let row = {};
-                        headers.forEach((header, index) => {
-                            row[header] = values[index] ? values[index].trim() : '';
-                        });
+                // Stronger heuristic: check for RIF.PRATICA pattern (\d{5}FLC) within the line
+                // Assuming RIF.PRATICA is always at column index 3 (0-indexed)
+                const potentialValues = line.split(',');
+                const praticaValue = potentialValues[3] ? potentialValues[3].trim() : ''; // Get the value at RIF.PRATICA column
+                const isNewRecord = /\d{5}FLC/.test(praticaValue); // Check if it matches the pattern
 
-                        // Validate essential fields
-                        if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '' && row['Cliente'] && row['Cliente'] !== '') {
-                            parsedCsvData.push(row);
-                            praticaDataMap.set(row['RIF.PRATICA'], row);
-                            uniqueClienti.add(row['Cliente']);
-                            currentDataRow = row; // This is the new current record
-                        } else {
-                            currentDataRow = null; // Malformed record, reset
+                if (isNewRecord) {
+                    // This is a new record line
+                    let row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = potentialValues[index] ? potentialValues[index].trim() : '';
+                    });
+
+                    // Ensure RIF.PRATICA is truly present for this record
+                    if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '') {
+                        parsedCsvData.push(row);
+                        praticaDataMap.set(row['RIF.PRATICA'], row);
+                        if (row['Cliente']) { // Ensure client exists before adding
+                           uniqueClienti.add(row['Cliente']);
                         }
+                        currentDataRow = row; // Set this as the current record being built
                     } else {
-                        currentDataRow = null; // Not enough columns, treat as malformed or continuation
+                        currentDataRow = null; // Invalid new record (e.g., missing RIF.PRATICA), discard
                     }
                 } else {
-                    // Continuation of previous record's 'Note' or 'Descrizione lavoro' field
-                    // This is a simplification; ideally, quoted fields should be handled.
-                    // Assuming it's a continuation of the 'Note' field.
+                    // This line is a continuation of the previous record's 'Note' field or a stray line
                     if (currentDataRow && currentDataRow['Note'] !== undefined) {
                         currentDataRow['Note'] += ' ' + line; // Append to Note field
                     }
+                    // If currentDataRow is null or 'Note' is not found, this line is effectively skipped.
                 }
             });
 
-            // Remove any rows that have RIF.PRATICA as empty due to prior issues (like line " ,45702.0,OFAR,..." where N° Offerta is missing)
+            // Re-map to ensure only valid data is in the final map and set
             parsedCsvData = parsedCsvData.filter(row => row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '');
             praticaDataMap = new Map(parsedCsvData.map(row => [row['RIF.PRATICA'], row]));
             uniqueClienti = new Set(parsedCsvData.map(row => row['Cliente']));
@@ -1673,6 +1671,14 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                     numeroCommessaElement.textContent = rowData['N° di Commessa'] || '';
                 }
                 if (aziendaSelect && rowData['Cliente']) {
+                    // Check if the option exists, if not add it or ensure the value is set correctly
+                    // Setting value directly handles cases where option might not be in initial uniqueClienti list if CSV was malformed
+                    if (!Array.from(aziendaSelect.options).some(option => option.value === rowData['Cliente'])) {
+                        const newOption = document.createElement('option');
+                        newOption.value = rowData['Cliente'];
+                        newOption.textContent = rowData['Cliente'];
+                        aziendaSelect.appendChild(newOption);
+                    }
                     aziendaSelect.value = rowData['Cliente']; 
                 }
             } else {
@@ -1684,7 +1690,7 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
 
         function handleAziendaChange() {
             // This function can be left empty or trigger other logic if needed.
-            // For now, it's primarily driven by Codice Pratica change.
+            // For now, it's primarily driven by Codice Pratica change, but direct selection is possible.
         }
         
         // ================================
@@ -2187,7 +2193,7 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
         
         function getEditableValue(selector, index) {
             const elements = document.querySelectorAll(selector);
-            if (elements[index]) {
+            if (elements[index]) { 
                 if (elements[index].tagName === 'SELECT') {
                     return elements[index].value.trim();
                 } else {
@@ -2332,197 +2338,6 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
             return responsibilities;
         }
         
-        function applyAllData(data) {
-            try {
-                if (data.documentInfo) {
-                    const codicePraticaSelect = document.getElementById('codicePraticaSelect');
-                    if (codicePraticaSelect && data.documentInfo.offerNumber) {
-                        codicePraticaSelect.value = data.documentInfo.offerNumber;
-                    } else if (codicePraticaSelect) { // Clear if no data
-                        codicePraticaSelect.value = 'TBA'; // Set to TBA if no offer number
-                    }
-                    
-                    setEditableValue('.document-info .editable', 0, data.documentInfo.date); // Index shifted
-                    
-                    const numeroCommessaElement = document.getElementById('numeroCommessa');
-                    if (numeroCommessaElement && data.documentInfo.numeroCommessa) {
-                        numeroCommessaElement.textContent = data.documentInfo.numeroCommessa;
-                    } else if (numeroCommessaElement) { 
-                        numeroCommessaElement.textContent = '';
-                    }
-
-                    setEditableValue('.document-info .editable', 1, data.documentInfo.validUntil); // Index shifted
-                }
-                
-                if (data.tagline) {
-                    document.querySelector('.tagline').innerHTML = data.tagline;
-                }
-                
-                const logoImage = document.getElementById('logoImage');
-                const logoText = document.getElementById('logoText');
-                if (data.logoImage) {
-                    logoImage.src = data.logoImage;
-                    logoImage.style.display = 'block';
-                    logoText.style.display = 'none';
-                } else if (data.logoText) {
-                    logoText.innerHTML = data.logoText.replace(/\n/g, '<br>');
-                    logoImage.style.display = 'none';
-                    logoText.style.display = 'block';
-                } else {
-                    logoText.innerHTML = 'FLASH<br>CONTROL Srl';
-                    logoImage.style.display = 'none';
-                    logoText.style.display = 'block';
-                }
-
-                if (data.client) {
-                    const aziendaSelect = document.getElementById('aziendaSelect');
-                    if (aziendaSelect && data.client.company) {
-                        aziendaSelect.value = data.client.company;
-                    } else if (aziendaSelect) { 
-                        aziendaSelect.value = '';
-                    }
-                    setEditableValue('.client-section .editable', 1, data.client.contact);
-                    setEditableValue('.client-section .editable', 2, data.client.email);
-                    setEditableValue('.client-section .editable', 3, data.client.phone);
-                }
-                
-                if (data.reference) {
-                    setEditableValue('.reference-section .editable', 0, data.reference.yourRef);
-                    setEditableValue('.reference-section .editable', 1, data.reference.object);
-                    setEditableValue('.reference-section .editable', 2, data.reference.description); 
-                    setEditableValue('.reference-section .editable', 3, data.reference.location); 
-                    setEditableValue('.reference-section .editable', 4, data.reference.timeline);  
-                }
-                
-                if (data.conditions) {
-                    setEditableValue('.conditions-section .editable', 0, data.conditions.validity);
-                    setEditableValue('.conditions-section .editable', 1, data.conditions.payment);
-                    setEditableValue('.conditions-section .editable', 2, data.conditions.delivery);
-                    setEditableValue('.conditions-section .editable', 3, data.conditions.currency);
-                }
-                
-                if (data.footer) {
-                    setEditableValue('.footer .editable', 0, data.footer.address);
-                    setEditableValue('.footer .editable', 1, data.footer.phoneAndFax);
-                    setEditableValue('.footer .editable', 2, data.footer.emailAndWeb);
-                    setEditableValue('.footer .editable', 3, data.footer.vatAndCf);
-                }
-                
-                if (data.items && data.items.length > 0) {
-                    applyTableItems(data.items);
-                }
-                
-                if (data.notes && data.notes.length > 0) {
-                    applyNotes(data.notes);
-                }
-                
-                if (data.responsibilities) {
-                    if (data.responsibilities.flash) {
-                        applyResponsibilities('#flashResponsibilities', data.responsibilities.flash, 'flash-item');
-                    }
-                    if (data.responsibilities.client) {
-                        applyResponsibilities('#clientResponsibilities', data.responsibilities.client, 'client-item');
-                    }
-                }
-
-                renumberTableRows(); 
-                
-            } catch (error) {
-                console.error('Errore applicazione dati:', error);
-                showNotification('⚠️ Errore nel caricamento di alcuni dati', 'error');
-            }
-        }
-        
-        function setEditableValue(selector, index, value) {
-            const elements = document.querySelectorAll(selector);
-            if (elements[index]) { 
-                if (elements[index].tagName === 'SELECT') { 
-                    elements[index].value = value;
-                } else { 
-                    elements[index].textContent = value;
-                }
-            }
-        }
-        
-        function extractTableItems() {
-            const items = [];
-            const rows = document.querySelectorAll('#quotationTableBody tr');
-            let currentPos = 0;
-
-            rows.forEach(row => {
-                const sectionHeaderCell = row.querySelector('.section-header-cell');
-                const totalRowCell = row.querySelector('td[colspan="4"]');
-
-                if (sectionHeaderCell) {
-                    items.push({
-                        isSectionHeader: true,
-                        description: sectionHeaderCell.querySelector('.editable')?.textContent.trim() || ''
-                    });
-                    currentPos = 0;
-                } else if (totalRowCell) {
-                     items.push({
-                        isTotalRow: true,
-                        total: totalRowCell.nextElementSibling.textContent.trim()
-                    });
-                }
-                else {
-                    const cells = row.children;
-                    if (cells.length >= 5) {
-                        currentPos++;
-                        const description = cells[1].querySelector('.editable')?.textContent.trim() || '';
-                        const quantity = cells[2].querySelector('.editable')?.textContent.trim() || '';
-                        const unitPrice = cells[3].querySelector('.editable')?.textContent.trim() || '';
-                        const total = cells[4].querySelector('.editable')?.textContent.trim() || '';
-                        
-                        if (description) {
-                            items.push({ position: currentPos, description, quantity, unitPrice, total });
-                        }
-                    }
-                }
-            });
-            
-            return items;
-        }
-        
-        function extractNotes() {
-            const notes = [];
-            const noteElements = document.querySelectorAll('.note-item');
-            
-            noteElements.forEach(noteEl => {
-                const strongEl = noteEl.querySelector('strong');
-                const editableEl = noteEl.querySelector('.editable');
-                
-                if (strongEl && editableEl) {
-                    notes.push({
-                        category: strongEl.textContent.trim(),
-                        content: editableEl.textContent.trim()
-                    });
-                }
-            });
-            
-            return notes;
-        }
-        
-        function extractResponsibilities(containerId) {
-            const responsibilities = [];
-            const container = document.querySelector(containerId);
-            const items = container ? container.querySelectorAll('.resp-item') : [];
-            
-            items.forEach(item => {
-                const strongEl = item.querySelector('strong');
-                const editableEl = item.querySelector('.editable');
-                
-                if (strongEl && editableEl) {
-                    responsibilities.push({
-                        title: strongEl.textContent.trim().replace(':', ''),
-                        content: editableEl.textContent.trim()
-                    });
-                }
-            });
-            
-            return responsibilities;
-        }
-        
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -2542,6 +2357,18 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
             
             parseCsvData(csvContent); // Parse CSV data on load
             populateDropdowns(); // Populate dropdowns after parsing
+
+            // Initial trigger for Codice Pratica change to populate fields on load
+            // Only if there are actual options available and not just TBA
+            const codicePraticaSelect = document.getElementById('codicePraticaSelect');
+            if (codicePraticaSelect && praticaDataMap.size > 0) {
+                codicePraticaSelect.value = Array.from(praticaDataMap.keys()).sort()[0]; // Select the first sorted valid pratica
+                handleCodicePraticaChange();
+            } else if (codicePraticaSelect) {
+                codicePraticaSelect.value = 'TBA'; // Ensure TBA is selected if no other data
+                handleCodicePraticaChange();
+            }
+
 
             const savedTagline = localStorage.getItem('flashcontrol_tagline');
             if (savedTagline) {
