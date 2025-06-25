@@ -1539,10 +1539,8 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
         function parseCsvData(csvContent) {
             // Remove citations
             const cleanedCsvContent = csvContent.replace(/\/g, '').trim();
-            // Split by newline and filter out empty lines
-            const lines = cleanedCsvContent.split('\n').filter(line => line.trim() !== '');
-
-            if (lines.length < 2) return;
+            // Split by newline. Do NOT filter empty lines here yet, as actual data rows might be split.
+            let lines = cleanedCsvContent.split('\n');
 
             let headerLineIndex = -1;
             for (let i = 0; i < lines.length; i++) {
@@ -1560,28 +1558,63 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
             }
 
             const headers = lines[headerLineIndex].split(',').map(h => h.trim());
-            const dataLines = lines.slice(headerLineIndex + 1);
+            let dataLinesRaw = lines.slice(headerLineIndex + 1);
 
-            parsedCsvData = []; // Clear previous data
+            parsedCsvData = [];
             praticaDataMap = new Map();
             uniqueClienti = new Set();
 
-            dataLines.forEach(line => {
-                const values = line.split(',');
-                if (values.length >= headers.length) {
-                    let row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index] ? values[index].trim() : '';
-                    });
-                    
-                    // Validate essential fields to avoid processing summary rows or malformed rows
-                    if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '' && row['Cliente'] && row['Cliente'] !== '') {
-                        parsedCsvData.push(row);
-                        praticaDataMap.set(row['RIF.PRATICA'], row);
-                        uniqueClienti.add(row['Cliente']);
+            let currentDataRow = null;
+
+            dataLinesRaw.forEach(line => {
+                line = line.trim();
+                if (line === '') return; // Skip truly empty lines
+
+                // Heuristic: If a line starts with a number followed by .0, it's likely a new record.
+                // Otherwise, it might be a continuation of the 'Note' field of the previous record.
+                const startsNewRecord = /^\d+\.0,/.test(line); // Checks for "1.0," "2.0," etc.
+                const isFooterOrSummary = line.includes('Sede Legale:') || line.includes('DATI COMMESSE');
+
+                if (isFooterOrSummary) {
+                    currentDataRow = null; // Stop processing data rows
+                    return;
+                }
+
+                if (startsNewRecord) {
+                    // New record starts
+                    const values = line.split(',');
+                    if (values.length >= headers.length) {
+                        let row = {};
+                        headers.forEach((header, index) => {
+                            row[header] = values[index] ? values[index].trim() : '';
+                        });
+
+                        // Validate essential fields
+                        if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '' && row['Cliente'] && row['Cliente'] !== '') {
+                            parsedCsvData.push(row);
+                            praticaDataMap.set(row['RIF.PRATICA'], row);
+                            uniqueClienti.add(row['Cliente']);
+                            currentDataRow = row; // This is the new current record
+                        } else {
+                            currentDataRow = null; // Malformed record, reset
+                        }
+                    } else {
+                        currentDataRow = null; // Not enough columns, treat as malformed or continuation
+                    }
+                } else {
+                    // Continuation of previous record's 'Note' or 'Descrizione lavoro' field
+                    // This is a simplification; ideally, quoted fields should be handled.
+                    // Assuming it's a continuation of the 'Note' field.
+                    if (currentDataRow && currentDataRow['Note'] !== undefined) {
+                        currentDataRow['Note'] += ' ' + line; // Append to Note field
                     }
                 }
             });
+
+            // Remove any rows that have RIF.PRATICA as empty due to prior issues (like line " ,45702.0,OFAR,..." where N° Offerta is missing)
+            parsedCsvData = parsedCsvData.filter(row => row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '');
+            praticaDataMap = new Map(parsedCsvData.map(row => [row['RIF.PRATICA'], row]));
+            uniqueClienti = new Set(parsedCsvData.map(row => row['Cliente']));
         }
 
         function populateDropdowns() {
@@ -2154,7 +2187,14 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
         
         function getEditableValue(selector, index) {
             const elements = document.querySelectorAll(selector);
-            return elements[index] ? elements[index].textContent.trim() : '';
+            if (elements[index]) {
+                if (elements[index].tagName === 'SELECT') {
+                    return elements[index].value.trim();
+                } else {
+                    return elements[index].textContent.trim();
+                }
+            }
+            return '';
         }
         
         function generateOfferName() {
@@ -2171,11 +2211,10 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
             
             return {
                 documentInfo: {
-                    offerNumber: document.getElementById('codicePraticaSelect')?.value || '', // Get from select
-                    date: getEditableValue('.document-info .editable', 1), // Index shifted
-                    // sheet: Removed
-                    numeroCommessa: document.getElementById('numeroCommessa')?.textContent.trim() || '', // New field
-                    validUntil: getEditableValue('.document-info .editable', 2) // Index shifted
+                    offerNumber: document.getElementById('codicePraticaSelect')?.value || '', 
+                    date: getEditableValue('.document-info .editable', 0), // Index shifted
+                    numeroCommessa: document.getElementById('numeroCommessa')?.textContent.trim() || '', 
+                    validUntil: getEditableValue('.document-info .editable', 1) // Index shifted
                 },
                 logoImage: logoImage.style.display === 'block' ? logoImage.src : null,
                 logoText: logoText.style.display === 'block' ? logoText.textContent.trim() : null,
@@ -2299,18 +2338,20 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                     const codicePraticaSelect = document.getElementById('codicePraticaSelect');
                     if (codicePraticaSelect && data.documentInfo.offerNumber) {
                         codicePraticaSelect.value = data.documentInfo.offerNumber;
-                        // No need to call handleCodicePraticaChange here directly, as it might lead to loops.
-                        // The initial population on load will ensure it's set.
+                    } else if (codicePraticaSelect) { // Clear if no data
+                        codicePraticaSelect.value = 'TBA'; // Set to TBA if no offer number
                     }
-                    setEditableValue('.document-info .editable', 0, data.documentInfo.date); // Index shifted due to removed sheet and added numeroCommessa
-                    setEditableValue('.document-info .editable', 1, data.documentInfo.validUntil); // Index shifted
+                    
+                    setEditableValue('.document-info .editable', 0, data.documentInfo.date); // Index shifted
                     
                     const numeroCommessaElement = document.getElementById('numeroCommessa');
                     if (numeroCommessaElement && data.documentInfo.numeroCommessa) {
                         numeroCommessaElement.textContent = data.documentInfo.numeroCommessa;
-                    } else if (numeroCommessaElement) { // Clear if no data
+                    } else if (numeroCommessaElement) { 
                         numeroCommessaElement.textContent = '';
                     }
+
+                    setEditableValue('.document-info .editable', 1, data.documentInfo.validUntil); // Index shifted
                 }
                 
                 if (data.tagline) {
@@ -2337,7 +2378,7 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                     const aziendaSelect = document.getElementById('aziendaSelect');
                     if (aziendaSelect && data.client.company) {
                         aziendaSelect.value = data.client.company;
-                    } else if (aziendaSelect) { // Clear if no data
+                    } else if (aziendaSelect) { 
                         aziendaSelect.value = '';
                     }
                     setEditableValue('.client-section .editable', 1, data.client.contact);
@@ -2394,10 +2435,10 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
         
         function setEditableValue(selector, index, value) {
             const elements = document.querySelectorAll(selector);
-            if (elements[index]) { // Check for existence
-                if (elements[index].tagName === 'SELECT') { // Handle select elements
+            if (elements[index]) { 
+                if (elements[index].tagName === 'SELECT') { 
                     elements[index].value = value;
-                } else { // Handle contenteditable divs
+                } else { 
                     elements[index].textContent = value;
                 }
             }
