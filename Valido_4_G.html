@@ -1158,7 +1158,7 @@
         // ATTENZIONE: Questa API Key è ESPOSTA nel frontend.
         // Per un'applicazione in produzione, considera di usare un backend
         // per gestire le chiamate a CloudConvert in modo sicuro.
-        const CLOUDCONVERT_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMjc0ZDA4ZmY0NGRiOThhMjY1OWNhZGY5ZmIxNWRlNDM3ZDZiY2U2MzdhMGRjYTk4OTAzZWZhNWMxNDQ3YzNmM2RiMmIwMDg0OGIwM2Y0NDEiLCJpYXQiOjE3NTA2Njc5NTQuMjQ3ODg0LCJuYmYiOjE3NTA2Njc5NTQuMjQ0NjM2LCJleHAiOjQ5MDYzNDE1NTQuMjQwNjM2LCJzdWIiOiI3MjI2Mjc1NiIsInNjb3BlcyI6WyJ1c2VyLnJlYWQiLCJ1c2VyLndyaXRlIiwidGFzay5yZWFkIiwidGFzay53cml0ZSIsIndlYmhvb2sucmVhZCIsIndlYmhvb2sud3JpdGUiLCJwcmVzZXQucmVhZCIsInByZXNldC53cml0ZSJdfQ.j-2sD_1H2_M-T_m2X2o5Q8F4L-wR1G5B3A7x9J5Y7Y8Q9F4J7Q6W2H3E7R1B3M1A9K8L6O5P4N3I2H1G5F4E3D2C1B0A'; // Example placeholder
+        const CLOUDCONVERT_API_KEY = 'YOUR_CLOUDCONVERT_API_KEY_HERE'; // Replace with your actual API key
         const CLOUDCONVERT_BASE_URL = 'https://cloudconvert.com';
         
         let rowCounter = 3; /* Questa variabile verrà aggiornata dalla funzione renumberTableRows */
@@ -1539,32 +1539,39 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
         function parseCsvData(csvContent) {
             // Remove citations
             const cleanedCsvContent = csvContent.replace(/\/g, '').trim();
-            // Split by newline. Do NOT filter empty lines here yet, as actual data rows might be split.
+            // Split by newline.
             let lines = cleanedCsvContent.split('\n');
 
             let headerLineIndex = -1;
+            let clienteIndex = -1;
+            let praticaIndex = -1;
+            let commessaIndex = -1;
+
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 // Look for common headers to find the actual data header
                 if (line.includes('N° Offerta') && line.includes('Cliente') && line.includes('RIF.PRATICA')) {
                     headerLineIndex = i;
+                    const headers = line.split(',').map(h => h.trim());
+                    clienteIndex = headers.indexOf('Cliente');
+                    praticaIndex = headers.indexOf('RIF.PRATICA');
+                    commessaIndex = headers.indexOf('N° di Commessa');
                     break;
                 }
             }
 
-            if (headerLineIndex === -1) {
-                console.error("CSV header not found or malformed.");
+            if (headerLineIndex === -1 || clienteIndex === -1 || praticaIndex === -1 || commessaIndex === -1) {
+                console.error("CSV headers (Cliente, RIF.PRATICA, N° di Commessa) not found or malformed.");
                 return;
             }
 
-            const headers = lines[headerLineIndex].split(',').map(h => h.trim());
             let dataLinesRaw = lines.slice(headerLineIndex + 1);
 
             parsedCsvData = [];
             praticaDataMap = new Map();
             uniqueClienti = new Set();
 
-            let currentDataRow = null; // Holds the row object currently being built
+            let currentDataRow = null; // Holds the row object currently being built (for multi-line notes)
 
             dataLinesRaw.forEach(line => {
                 line = line.trim();
@@ -1572,47 +1579,58 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
 
                 const isFooterOrSummary = line.includes('Sede Legale:') || line.includes('DATI COMMESSE');
                 if (isFooterOrSummary) {
-                    currentDataRow = null; // Stop processing data rows
+                    // Once a summary/footer line is hit, stop processing further as data lines won't follow.
+                    currentDataRow = null; // Reset for good measure
                     return;
                 }
 
-                // Stronger heuristic: check for RIF.PRATICA pattern (\d{5}FLC) within the line
-                // Assuming RIF.PRATICA is always at column index 3 (0-indexed)
-                const potentialValues = line.split(',');
-                const praticaValue = potentialValues[3] ? potentialValues[3].trim() : ''; // Get the value at RIF.PRATICA column
-                const isNewRecord = /\d{5}FLC/.test(praticaValue); // Check if it matches the pattern
+                const values = line.split(',');
+
+                // Attempt to extract RIF.PRATICA from its known position for heuristic
+                const praticaCandidate = values[praticaIndex] ? values[praticaIndex].trim() : '';
+                const isNewRecord = /\d{5}FLC/.test(praticaCandidate); // Check if it matches the FLC pattern
 
                 if (isNewRecord) {
                     // This is a new record line
                     let row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = potentialValues[index] ? potentialValues[index].trim() : '';
-                    });
-
-                    // Ensure RIF.PRATICA is truly present for this record
-                    if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '') {
+                    // Populate row using found indices
+                    row['N° Offerta'] = values[headers.indexOf('N° Offerta')] ? values[headers.indexOf('N° Offerta')].trim() : '';
+                    row['Data Offerta'] = values[headers.indexOf('Data Offerta')] ? values[headers.indexOf('Data Offerta')].trim() : '';
+                    row['Cliente'] = cliente; // Use pre-extracted value
+                    row['RIF.PRATICA'] = pratica; // Use pre-extracted value
+                    row['Esito Ordine'] = values[headers.indexOf('Esito Ordine')] ? values[headers.indexOf('Esito Ordine')].trim() : '';
+                    row['N° di Commessa'] = commessa; // Use pre-extracted value
+                    row['n° Ordine'] = values[headers.indexOf('n° Ordine')] ? values[headers.indexOf('n° Ordine')].trim() : '';
+                    row['Descrizione lavoro'] = values[headers.indexOf('Descrizione lavoro')] ? values[headers.indexOf('Descrizione lavoro')].trim() : '';
+                    row['Luogo di lavoro'] = values[headers.indexOf('Luogo di lavoro')] ? values[headers.indexOf('Luogo di lavoro')].trim() : '';
+                    row['Note'] = values[headers.indexOf('Note')] ? values[headers.indexOf('Note')].trim() : '';
+                    
+                    // Validate essential fields again before adding to data
+                    if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '' && row['Cliente'] && row['Cliente'] !== '') {
                         parsedCsvData.push(row);
                         praticaDataMap.set(row['RIF.PRATICA'], row);
-                        if (row['Cliente']) { // Ensure client exists before adding
-                           uniqueClienti.add(row['Cliente']);
-                        }
+                        uniqueClienti.add(row['Cliente']);
                         currentDataRow = row; // Set this as the current record being built
                     } else {
-                        currentDataRow = null; // Invalid new record (e.g., missing RIF.PRATICA), discard
+                        currentDataRow = null; // Invalid new record (e.g., missing RIF.PRATICA or Cliente), discard
                     }
                 } else {
                     // This line is a continuation of the previous record's 'Note' field or a stray line
+                    // Append to the Note field if it's a continuation and we have a current record
                     if (currentDataRow && currentDataRow['Note'] !== undefined) {
-                        currentDataRow['Note'] += ' ' + line; // Append to Note field
+                        currentDataRow['Note'] += ' ' + line; 
                     }
-                    // If currentDataRow is null or 'Note' is not found, this line is effectively skipped.
                 }
             });
 
-            // Re-map to ensure only valid data is in the final map and set
+            // Final re-mapping and sorting for dropdowns
             parsedCsvData = parsedCsvData.filter(row => row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '');
             praticaDataMap = new Map(parsedCsvData.map(row => [row['RIF.PRATICA'], row]));
-            uniqueClienti = new Set(parsedCsvData.map(row => row['Cliente']));
+            uniqueClienti = new Set(Array.from(uniqueClienti).sort()); // Sort unique clients immediately
+
+            console.log("CSV Parsed (final):", parsedCsvData);
+            console.log("Pratica Map (final):", praticaDataMap);
+            console.log("Unique Clienti (final):", uniqueClienti);
         }
 
         function populateDropdowns() {
@@ -1642,7 +1660,7 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                 emptyOption.textContent = ''; // Empty option
                 aziendaSelect.appendChild(emptyOption);
                 
-                Array.from(uniqueClienti).sort().forEach(cliente => {
+                uniqueClienti.forEach(cliente => { // uniqueClienti is already sorted now
                     const option = document.createElement('option');
                     option.value = cliente;
                     option.textContent = cliente;
@@ -1672,7 +1690,7 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                 }
                 if (aziendaSelect && rowData['Cliente']) {
                     // Check if the option exists, if not add it or ensure the value is set correctly
-                    // Setting value directly handles cases where option might not be in initial uniqueClienti list if CSV was malformed
+                    // This ensures that even if 'uniqueClienti' missed an edge case or client name has odd chars, it will be added.
                     if (!Array.from(aziendaSelect.options).some(option => option.value === rowData['Cliente'])) {
                         const newOption = document.createElement('option');
                         newOption.value = rowData['Cliente'];
@@ -2224,9 +2242,8 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
                 },
                 logoImage: logoImage.style.display === 'block' ? logoImage.src : null,
                 logoText: logoText.style.display === 'block' ? logoText.textContent.trim() : null,
-                tagline: document.querySelector('.tagline').innerHTML,
-                client: {
-                    company: document.getElementById('aziendaSelect')?.value || '', // Get from select
+                    // Modified to get value from select
+                    company: document.getElementById('aziendaSelect')?.value || '', 
                     contact: getEditableValue('.client-section .editable', 1),
                     email: getEditableValue('.client-section .editable', 2),
                     phone: getEditableValue('.client-section .editable', 3)
@@ -2362,11 +2379,13 @@ P.IVA: 15815591001  -  codice univoco: A4707H7",,,,,,,,,,
             // Only if there are actual options available and not just TBA
             const codicePraticaSelect = document.getElementById('codicePraticaSelect');
             if (codicePraticaSelect && praticaDataMap.size > 0) {
-                codicePraticaSelect.value = Array.from(praticaDataMap.keys()).sort()[0]; // Select the first sorted valid pratica
-                handleCodicePraticaChange();
+                // Set initial value to the first sorted real pratica, or 'TBA'
+                const firstPratica = Array.from(praticaDataMap.keys()).sort()[0];
+                codicePraticaSelect.value = firstPratica; 
+                handleCodicePraticaChange(); // Trigger change to populate associated fields
             } else if (codicePraticaSelect) {
                 codicePraticaSelect.value = 'TBA'; // Ensure TBA is selected if no other data
-                handleCodicePraticaChange();
+                handleCodicePraticaChange(); // Trigger change to clear associated fields
             }
 
 
