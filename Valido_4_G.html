@@ -1621,7 +1621,7 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
                     if (row['RIF.PRATICA'] && row['RIF.PRATICA'] !== '' && row['Cliente'] && row['Cliente'] !== '') {
                         parsedCsvData.push(row);
                         praticaDataMap.set(row['RIF.PRATICA'], row);
-                        if (row['Cliente']) { 
+                        if (row['Cliente']) { // Ensure client exists before adding
                            uniqueClienti.add(row['Cliente']);
                         }
                         currentDataRow = row; 
@@ -1719,12 +1719,13 @@ P.IVA: 15815591001  -  codice univoco: A4707H7;;;;;;;;;;
                     numeroCommessaElement.textContent = rowData['N° di Commessa'] || '';
                 }
                 if (aziendaSelect && rowData['Cliente']) {
+                    // Check if the option exists, if not add it or ensure the value is set correctly
+                    // This ensures that even if 'uniqueClienti' missed an edge case or client name has odd chars, it will be added.
                     if (!Array.from(aziendaSelect.options).some(option => option.value === rowData['Cliente'])) {
                         const newOption = document.createElement('option');
                         newOption.value = rowData['Cliente'];
                         newOption.textContent = rowData['Cliente'];
                         aziendaSelect.appendChild(newOption);
-                        console.log(`  Added missing Cliente option: ${rowData['Cliente']}`);
                     }
                     aziendaSelect.value = rowData['Cliente']; 
                 }
